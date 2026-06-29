@@ -21,9 +21,9 @@ import { AuthService, Profile, User } from './auth.service';
         
         <!-- Perfiles -->
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
-          <div class="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+          <div class="p-6 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center bg-slate-50 gap-3">
             <h3 class="font-bold text-slate-800">Perfiles de Acceso</h3>
-            <button (click)="openProfileModal()" class="text-xs bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-3 py-1.5 rounded-lg transition-colors flex items-center">
+            <button (click)="openProfileModal()" class="w-full sm:w-auto text-xs bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-3 py-1.5 rounded-lg transition-colors flex items-center justify-center">
               <mat-icon class="text-[16px] mr-1">add</mat-icon> Nuevo Perfil
             </button>
           </div>
@@ -56,9 +56,9 @@ import { AuthService, Profile, User } from './auth.service';
 
         <!-- Usuarios -->
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
-          <div class="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+          <div class="p-6 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center bg-slate-50 gap-3">
             <h3 class="font-bold text-slate-800">Usuarios</h3>
-            <button (click)="openUserModal()" class="text-xs bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-3 py-1.5 rounded-lg transition-colors flex items-center">
+            <button (click)="openUserModal()" class="w-full sm:w-auto text-xs bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-3 py-1.5 rounded-lg transition-colors flex items-center justify-center">
               <mat-icon class="text-[16px] mr-1">person_add</mat-icon> Nuevo Usuario
             </button>
           </div>

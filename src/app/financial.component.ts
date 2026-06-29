@@ -22,23 +22,23 @@ interface Transaction {
   imports: [CommonModule, FormsModule, MatIconModule],
   template: `
     <div class="max-w-6xl mx-auto space-y-6">
-      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-6 rounded-xl shadow-sm border border-slate-200 gap-4">
+      <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center bg-white p-6 rounded-xl shadow-sm border border-slate-200 gap-4">
         <div>
           <h2 class="text-2xl font-bold tracking-tight text-slate-900">Control Financiero</h2>
           <p class="text-sm text-slate-500 mt-1">Historial de abonos (ingresos) y cargos (ventas).</p>
         </div>
-        <div class="flex flex-wrap gap-4 items-center">
-          <div class="flex items-center space-x-2">
-            <input type="date" [ngModel]="startDate()" (ngModelChange)="startDate.set($event)" class="px-3 py-2 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-indigo-500 outline-none text-slate-700 bg-slate-50">
-            <span class="text-slate-500 text-sm">a</span>
-            <input type="date" [ngModel]="endDate()" (ngModelChange)="endDate.set($event)" class="px-3 py-2 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-indigo-500 outline-none text-slate-700 bg-slate-50">
+        <div class="flex flex-col md:flex-row flex-wrap gap-3 w-full lg:w-auto">
+          <div class="flex flex-col sm:flex-row w-full md:w-auto items-stretch sm:items-center gap-2 sm:gap-0 sm:space-x-2">
+            <input type="date" [ngModel]="startDate()" (ngModelChange)="startDate.set($event)" class="w-full sm:w-auto px-3 py-2 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-indigo-500 outline-none text-slate-700 bg-slate-50">
+            <span class="text-slate-500 text-sm hidden sm:inline text-center">a</span>
+            <input type="date" [ngModel]="endDate()" (ngModelChange)="endDate.set($event)" class="w-full sm:w-auto px-3 py-2 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-indigo-500 outline-none text-slate-700 bg-slate-50">
           </div>
-          <div class="relative">
+          <div class="relative w-full md:w-auto flex-1">
             <mat-icon class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</mat-icon>
-            <input type="text" [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)" placeholder="Buscar cliente o nota..." class="pl-9 pr-4 py-2 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-indigo-500 outline-none w-48 sm:w-64 bg-slate-50 transition-all">
+            <input type="text" [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)" placeholder="Buscar cliente o nota..." class="pl-9 pr-4 py-2 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-indigo-500 outline-none w-full bg-slate-50 transition-all">
           </div>
-          <button (click)="exportToExcel()" class="flex items-center space-x-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-md text-sm font-semibold transition-colors shadow-sm whitespace-nowrap">
-            <mat-icon class="text-[18px]">table_chart</mat-icon> <span>Exportar Reporte General</span>
+          <button (click)="exportToExcel()" class="w-full md:w-auto justify-center flex items-center space-x-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-md text-sm font-semibold transition-colors shadow-sm whitespace-nowrap">
+            <mat-icon class="text-[18px]">table_chart</mat-icon> <span>Exportar</span>
           </button>
         </div>
       </div>
@@ -75,13 +75,13 @@ interface Transaction {
       </div>
 
       <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
-        <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+        <div class="p-4 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center bg-slate-50 gap-3">
             <h3 class="font-bold text-slate-800 tracking-tight text-sm">Historial General de Movimientos</h3>
             
-            <div class="flex gap-2">
-              <button (click)="filterType.set('ALL')" [class.bg-indigo-100]="filterType() === 'ALL'" [class.text-indigo-700]="filterType() === 'ALL'" class="px-3 py-1.5 rounded-md text-xs font-semibold text-slate-500 hover:bg-slate-100 transition-colors">Todos</button>
-              <button (click)="filterType.set('PAYMENT')" [class.bg-emerald-100]="filterType() === 'PAYMENT'" [class.text-emerald-700]="filterType() === 'PAYMENT'" class="px-3 py-1.5 rounded-md text-xs font-semibold text-slate-500 hover:bg-slate-100 transition-colors">Abonos</button>
-              <button (click)="filterType.set('SALE')" [class.bg-rose-100]="filterType() === 'SALE'" [class.text-rose-700]="filterType() === 'SALE'" class="px-3 py-1.5 rounded-md text-xs font-semibold text-slate-500 hover:bg-slate-100 transition-colors">Cargos</button>
+            <div class="flex flex-wrap w-full sm:w-auto gap-2">
+              <button (click)="filterType.set('ALL')" [class.bg-indigo-100]="filterType() === 'ALL'" [class.text-indigo-700]="filterType() === 'ALL'" class="flex-1 sm:flex-none px-3 py-1.5 rounded-md text-xs font-semibold text-slate-500 hover:bg-slate-100 transition-colors">Todos</button>
+              <button (click)="filterType.set('PAYMENT')" [class.bg-emerald-100]="filterType() === 'PAYMENT'" [class.text-emerald-700]="filterType() === 'PAYMENT'" class="flex-1 sm:flex-none px-3 py-1.5 rounded-md text-xs font-semibold text-slate-500 hover:bg-slate-100 transition-colors">Abonos</button>
+              <button (click)="filterType.set('SALE')" [class.bg-rose-100]="filterType() === 'SALE'" [class.text-rose-700]="filterType() === 'SALE'" class="flex-1 sm:flex-none px-3 py-1.5 rounded-md text-xs font-semibold text-slate-500 hover:bg-slate-100 transition-colors">Cargos</button>
             </div>
         </div>
         <div class="overflow-x-auto">

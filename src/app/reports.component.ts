@@ -37,9 +37,9 @@ import { DataService } from './data.service';
 
       <!-- Weekly Breakdown Analysis -->
       <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
-        <div class="px-4 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+        <div class="px-4 py-4 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center bg-slate-50 gap-3">
           <h3 class="font-bold text-slate-800 tracking-tight text-sm">Histórico Semanal de Ingresos</h3>
-          <button (click)="printPage()" class="text-xs font-bold text-indigo-600 flex items-center hover:bg-slate-200 px-3 py-1 rounded transition-colors bg-white border border-slate-200">
+          <button (click)="printPage()" class="w-full sm:w-auto justify-center text-xs font-bold text-indigo-600 flex items-center hover:bg-slate-200 px-3 py-2 rounded transition-colors bg-white border border-slate-200">
              Exportar PDF
           </button>
         </div>

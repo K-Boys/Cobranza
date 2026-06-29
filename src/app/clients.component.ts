@@ -10,12 +10,12 @@ import { DataService, Client } from './data.service';
   imports: [CommonModule, ReactiveFormsModule, FormsModule, MatIconModule],
   template: `
     <div class="max-w-6xl mx-auto space-y-6">
-      <div class="flex justify-between items-center bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-6 rounded-xl shadow-sm border border-slate-200 gap-4">
         <div>
           <h2 class="text-2xl font-bold tracking-tight text-slate-900">Directorio de Clientes</h2>
           <p class="text-sm text-slate-500 mt-1">Gestiona las cuentas y saldos de tus clientes</p>
         </div>
-        <button (click)="toggleForm()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-md font-medium transition-colors flex items-center shadow-sm">
+        <button (click)="toggleForm()" class="w-full sm:w-auto justify-center bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-md font-medium transition-colors flex items-center shadow-sm whitespace-nowrap">
           <mat-icon class="mr-2 text-sm">person_add</mat-icon>
           Nuevo Cliente
         </button>
@@ -86,12 +86,12 @@ import { DataService, Client } from './data.service';
       }
 
       <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
-        <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+        <div class="p-4 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center bg-slate-50 gap-3">
             <h3 class="font-bold text-slate-800 tracking-tight text-sm">Cuentas y Saldos</h3>
-            <div class="flex gap-2">
-              <div class="relative">
+            <div class="flex w-full sm:w-auto gap-2">
+              <div class="relative w-full sm:w-auto">
                 <mat-icon class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</mat-icon>
-                <input type="text" [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)" class="pl-9 pr-4 py-1.5 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none w-64">
+                <input type="text" [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)" placeholder="Buscar..." class="pl-9 pr-4 py-1.5 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none w-full sm:w-64">
               </div>
             </div>
         </div>

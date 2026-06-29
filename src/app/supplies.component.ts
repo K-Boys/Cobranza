@@ -9,24 +9,26 @@ import { DataService, Supply } from './data.service';
   imports: [CommonModule, ReactiveFormsModule, FormsModule, MatIconModule],
   template: `
     <div class="max-w-5xl mx-auto space-y-6">
-      <div class="flex justify-between items-center bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+      <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center bg-white p-6 rounded-xl shadow-sm border border-slate-200 gap-4">
         <div>
           <h2 class="text-2xl font-bold tracking-tight text-slate-900">Inventario</h2>
           <p class="text-sm text-slate-500 mt-1">Catálogo de productos disponibles para los clientes.</p>
         </div>
-        <div class="flex gap-4">
-          <div class="relative">
+        <div class="flex flex-col sm:flex-row flex-wrap lg:flex-nowrap gap-3 w-full lg:w-auto">
+          <div class="relative w-full sm:w-auto flex-1">
             <mat-icon class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</mat-icon>
-            <input type="text" [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)" class="pl-9 pr-4 py-2.5 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-indigo-500 outline-none w-64 bg-slate-50 transition-all">
+            <input type="text" [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)" placeholder="Buscar..." class="pl-9 pr-4 py-2.5 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-indigo-500 outline-none w-full bg-slate-50 transition-all">
           </div>
-          <button (click)="toggleHistory()" class="bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 px-5 py-2.5 rounded-md text-sm font-semibold transition-colors flex items-center shadow-sm">
-            <mat-icon class="mr-2 text-sm">history</mat-icon>
-            Historial
-          </button>
-          <button (click)="toggleForm()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-md text-sm font-semibold transition-colors flex items-center shadow-sm">
-            <mat-icon class="mr-2 text-sm">add_box</mat-icon>
-            Nuevo Suministro
-          </button>
+          <div class="flex gap-3 w-full sm:w-auto">
+            <button (click)="toggleHistory()" class="flex-1 sm:flex-none justify-center bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 px-5 py-2.5 rounded-md text-sm font-semibold transition-colors flex items-center shadow-sm">
+              <mat-icon class="mr-2 text-sm">history</mat-icon>
+              Historial
+            </button>
+            <button (click)="toggleForm()" class="flex-1 sm:flex-none justify-center bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-md text-sm font-semibold transition-colors flex items-center shadow-sm whitespace-nowrap">
+              <mat-icon class="mr-2 text-sm">add_box</mat-icon>
+              Nuevo
+            </button>
+          </div>
         </div>
       </div>
 

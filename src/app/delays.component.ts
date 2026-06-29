@@ -17,7 +17,7 @@ interface DelayedClient {
   imports: [CommonModule, MatIconModule, RouterLink],
   template: `
     <div class="space-y-6">
-      <div class="flex justify-between items-end">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
         <div>
           <h2 class="text-2xl font-bold text-slate-800 tracking-tight">Cuentas por Cobrar</h2>
           <p class="text-slate-500 text-sm mt-1">Clientes con cargos vencidos según sus días de crédito</p>

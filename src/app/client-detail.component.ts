@@ -19,10 +19,10 @@ import * as FileSaver from 'file-saver';
             <mat-icon class="text-sm mr-1">arrow_back</mat-icon> Volver al directorio
           </a>
           
-          <div class="flex justify-between items-start bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-6 rounded-xl shadow-sm border border-slate-200 gap-4">
             <div>
               <h2 class="text-3xl font-bold tracking-tight text-slate-900">{{ client()!.name }}</h2>
-              <div class="text-slate-500 mt-2 flex items-center space-x-4 text-sm">
+              <div class="text-slate-500 mt-2 flex flex-wrap items-center gap-4 text-sm">
                 <span class="flex items-center"><mat-icon class="text-sm mr-1">call</mat-icon> {{ client()!.phone }}</span>
                 @if (client()!.email) {
                   <span class="flex items-center"><mat-icon class="text-sm mr-1">mail</mat-icon> {{ client()!.email }}</span>
@@ -30,7 +30,7 @@ import * as FileSaver from 'file-saver';
               </div>
             </div>
             
-            <div class="text-right">
+            <div class="text-left sm:text-right w-full sm:w-auto border-t sm:border-t-0 pt-4 sm:pt-0 border-slate-100">
               <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-1">Deuda Actual Pendiente</p>
               <div class="text-3xl font-bold tracking-tight" [class.text-rose-600]="summary().currentDebt > 0" [class.text-emerald-600]="summary().currentDebt <= 0">
                 {{ formatCurrency(summary().currentDebt) }}
