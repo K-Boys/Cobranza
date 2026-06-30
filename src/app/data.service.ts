@@ -1,4 +1,6 @@
-import { Injectable, signal, computed, effect } from '@angular/core';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { Injectable, signal, computed, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 
 export interface Client { 
   id: string; 
@@ -28,11 +30,53 @@ export interface Sale { id: string; clientId: string; date: string; items: SaleI
 export interface Payment { id: string; clientId: string; date: string; amount: number; notes?: string; }
 export interface Visit { id: string; clientId: string; date: string; status: 'pending' | 'visited' | 'not_found'; notes?: string; }
 
-@Injectable({
-  providedIn: 'root'
-})
+const mapClient = (c: any): Client => ({
+  id: c.id, name: c.nombre, phone: c.telefono, email: c.correo, street: c.calle, 
+  neighborhood: c.colonia, city: c.ciudad, notes: c.notas, paymentTermsDays: c.dias_termino_pago || c.diasTerminoPago, 
+  createdAt: c.fecha_creacion || c.fechaCreacion
+});
+
+const mapClientReverse = (c: Partial<Client>): any => {
+  const out: any = {};
+  if (c.name !== undefined) out.nombre = c.name;
+  if (c.phone !== undefined) out.telefono = c.phone;
+  if (c.email !== undefined) out.correo = c.email;
+  if (c.street !== undefined) out.calle = c.street;
+  if (c.neighborhood !== undefined) out.colonia = c.neighborhood;
+  if (c.city !== undefined) out.ciudad = c.city;
+  if (c.notes !== undefined) out.notas = c.notes;
+  if (c.paymentTermsDays !== undefined) out.diasTerminoPago = c.paymentTermsDays;
+  return out;
+};
+
+const mapSupply = (s: any): Supply => ({
+  id: s.id, name: s.nombre, price: Number(s.precio), stock: s.stock
+});
+
+const mapSupplyHistory = (h: any): SupplyHistoryEvent => ({
+  id: h.id, supplyId: h.id_suministro || h.idSuministro, supplyName: h.nombre_suministro || h.nombreSuministro,
+  date: h.fecha, type: h.tipo, quantityChanged: h.cantidad_cambio || h.cantidadCambio,
+  newStockValue: h.nuevo_valor_stock || h.nuevoValorStock, notes: h.notas
+});
+
+const mapSale = (s: any): Sale => ({
+  id: s.id, clientId: s.id_cliente || s.idCliente, date: s.fecha, items: s.items || [], 
+  total: Number(s.total), expectedPaymentAmount: s.monto_pago_esperado || s.montoPagoEsperado ? Number(s.monto_pago_esperado || s.montoPagoEsperado) : undefined, 
+  notes: s.notas
+});
+
+const mapPayment = (p: any): Payment => ({
+  id: p.id, clientId: p.id_cliente || p.idCliente, date: p.fecha, amount: Number(p.monto), notes: p.notas
+});
+
+const mapVisit = (v: any): Visit => ({
+  id: v.id, clientId: v.id_cliente || v.idCliente, date: v.fecha, status: v.estado, notes: v.notas
+} as any);
+
+@Injectable({ providedIn: 'root' })
 export class DataService {
-  // Signals for state
+  private http = inject(HttpClient);
+
   clients = signal<Client[]>([]);
   supplies = signal<Supply[]>([]);
   supplyHistory = signal<SupplyHistoryEvent[]>([]);
@@ -42,148 +86,82 @@ export class DataService {
 
   constructor() {
     this.loadInitialState();
-    
-    // Save to localStorage on change
-    effect(() => {
-      this.saveStateToLocalStorage();
-    });
   }
 
   private loadInitialState() {
     if (typeof window === 'undefined') return;
-    try {
-      const data = localStorage.getItem('cobranza_data');
-      if (data) {
-        const parsed = JSON.parse(data);
-        this.clients.set(parsed.clients || []);
-        this.supplies.set(parsed.supplies || []);
-        this.supplyHistory.set(parsed.supplyHistory || []);
-        this.sales.set(parsed.sales || []);
-        this.payments.set(parsed.payments || []);
-        this.visits.set(parsed.visits || []);
-      }
-    } catch(e) {
-      console.error('Error loading state', e);
-    }
-  }
-
-  private saveStateToLocalStorage() {
-    if (typeof window === 'undefined') return;
-    try {
-      const state = {
-        clients: this.clients(),
-        supplies: this.supplies(),
-        supplyHistory: this.supplyHistory(),
-        sales: this.sales(),
-        payments: this.payments(),
-        visits: this.visits()
-      };
-      localStorage.setItem('cobranza_data', JSON.stringify(state));
-    } catch (e) {
-      console.error('Error saving state', e);
-    }
+    this.http.get<any[]>('/api/clients').subscribe(data => this.clients.set(data.map(mapClient)));
+    this.http.get<any[]>('/api/supplies').subscribe(data => this.supplies.set(data.map(mapSupply)));
+    this.http.get<any[]>('/api/supply-history').subscribe(data => this.supplyHistory.set(data.map(mapSupplyHistory)));
+    this.http.get<any[]>('/api/sales').subscribe(data => this.sales.set(data.map(mapSale)));
+    this.http.get<any[]>('/api/payments').subscribe(data => this.payments.set(data.map(mapPayment)));
+    this.http.get<any[]>('/api/visits').subscribe(data => this.visits.set(data.map(mapVisit)));
   }
 
   // --- Clients ---
   addClient(client: Omit<Client, 'id' | 'createdAt'>) {
-    const newClient: Client = {
-      ...client,
-      id: crypto.randomUUID(),
-      createdAt: new Date().toISOString()
-    };
-    this.clients.update(c => [...c, newClient]);
-    return newClient;
+    this.http.post<any>('/api/clients', mapClientReverse(client)).subscribe(newClient => {
+      this.clients.update(c => [mapClient(newClient), ...c]);
+    });
+    return {} as Client; 
   }
 
   updateClient(id: string, client: Partial<Client>) {
-    this.clients.update(c => c.map(item => item.id === id ? { ...item, ...client } : item));
+    this.http.put<any>(`/api/clients/${id}`, mapClientReverse(client)).subscribe(updatedClient => {
+      this.clients.update(c => c.map(item => item.id === id ? mapClient(updatedClient) : item));
+    });
   }
 
   deleteClient(id: string) {
-    this.clients.update(c => c.filter(item => item.id !== id));
+    this.http.delete(`/api/clients/${id}`).subscribe(() => {
+      this.clients.update(c => c.filter(item => item.id !== id));
+    });
   }
 
   // --- Supplies ---
-  addSupplyHistory(event: Omit<SupplyHistoryEvent, 'id' | 'date'>) {
-    const newEvent: SupplyHistoryEvent = {
-      ...event,
-      id: crypto.randomUUID(),
-      date: new Date().toISOString()
-    };
-    this.supplyHistory.update(h => [...h, newEvent]);
-  }
-
   addSupply(supply: Omit<Supply, 'id'>) {
-    const newSupply: Supply = {
-      ...supply,
-      id: crypto.randomUUID()
-    };
-    this.supplies.update(s => [...s, newSupply]);
-    this.addSupplyHistory({
-      supplyId: newSupply.id,
-      supplyName: newSupply.name,
-      type: 'ALTA',
-      newStockValue: newSupply.stock,
-      notes: `Insumo dado de alta con ${newSupply.stock} en stock`
+    const payload = { nombre: supply.name, precio: supply.price, stock: supply.stock, historyType: 'ALTA', notes: `Insumo dado de alta con ${supply.stock} en stock` };
+    this.http.post<any>('/api/supplies', payload).subscribe(newSupply => {
+      this.supplies.update(s => [...s, mapSupply(newSupply)]);
+      this.refreshSupplyHistory();
     });
-    return newSupply;
+    return {} as Supply;
   }
 
   updateSupply(id: string, supply: Partial<Supply>) {
     const oldSupply = this.supplies().find(s => s.id === id);
-    this.supplies.update(s => s.map(item => item.id === id ? { ...item, ...supply } : item));
-    
+    const payload: any = {};
+    if (supply.name !== undefined) payload.nombre = supply.name;
+    if (supply.price !== undefined) payload.precio = supply.price;
+    if (supply.stock !== undefined) payload.stock = supply.stock;
+
     if (oldSupply) {
       if (supply.stock !== undefined && supply.stock !== oldSupply.stock) {
         const diff = supply.stock - oldSupply.stock;
-        this.addSupplyHistory({
-          supplyId: id,
-          supplyName: supply.name || oldSupply.name,
-          type: diff > 0 ? 'AJUSTE_POSITIVO' : 'AJUSTE_NEGATIVO',
-          quantityChanged: Math.abs(diff),
-          newStockValue: supply.stock,
-          notes: `Stock modificado manualmente`
-        });
+        payload.historyType = diff > 0 ? 'AJUSTE_POSITIVO' : 'AJUSTE_NEGATIVO';
+        payload.quantityChanged = Math.abs(diff);
+        payload.notes = 'Stock modificado manualmente';
       } else {
-        this.addSupplyHistory({
-          supplyId: id,
-          supplyName: supply.name || oldSupply.name,
-          type: 'EDICION',
-          newStockValue: oldSupply.stock,
-          notes: `Información de insumo actualizada`
-        });
+        payload.historyType = 'EDICION';
+        payload.notes = 'Información de insumo actualizada';
       }
     }
+
+    this.http.put<any>(`/api/supplies/${id}`, payload).subscribe(updatedSupply => {
+      this.supplies.update(s => s.map(item => item.id === id ? mapSupply(updatedSupply) : item));
+      this.refreshSupplyHistory();
+    });
   }
 
   deleteSupply(id: string) {
-    const oldSupply = this.supplies().find(s => s.id === id);
-    this.supplies.update(s => s.filter(item => item.id !== id));
-    if (oldSupply) {
-      this.addSupplyHistory({
-        supplyId: id,
-        supplyName: oldSupply.name,
-        type: 'BAJA',
-        notes: `Insumo eliminado`
-      });
-    }
+    this.http.delete(`/api/supplies/${id}`).subscribe(() => {
+      this.supplies.update(s => s.filter(item => item.id !== id));
+      this.refreshSupplyHistory();
+    });
   }
 
   updateSupplyStock(id: string, newStock: number) {
-    const oldSupply = this.supplies().find(s => s.id === id);
-    this.supplies.update(s => s.map(sup => sup.id === id ? { ...sup, stock: newStock } : sup));
-
-    if (oldSupply && oldSupply.stock !== newStock) {
-      const diff = newStock - oldSupply.stock;
-      this.addSupplyHistory({
-        supplyId: id,
-        supplyName: oldSupply.name,
-        type: diff > 0 ? 'AJUSTE_POSITIVO' : 'AJUSTE_NEGATIVO',
-        quantityChanged: Math.abs(diff),
-        newStockValue: newStock,
-        notes: `Ajuste de stock rápido`
-      });
-    }
+    this.updateSupply(id, { stock: newStock });
   }
 
   adjustSupplyStock(id: string, diff: number, notes: string) {
@@ -191,83 +169,87 @@ export class DataService {
     if (!oldSupply || diff === 0) return;
     
     const newStock = Math.max(0, oldSupply.stock + diff);
-    this.supplies.update(s => s.map(sup => sup.id === id ? { ...sup, stock: newStock } : sup));
-
-    this.addSupplyHistory({
-      supplyId: id,
-      supplyName: oldSupply.name,
-      type: diff > 0 ? 'AJUSTE_POSITIVO' : 'AJUSTE_NEGATIVO',
+    const payload = {
+      stock: newStock,
+      historyType: diff > 0 ? 'AJUSTE_POSITIVO' : 'AJUSTE_NEGATIVO',
       quantityChanged: Math.abs(diff),
-      newStockValue: newStock,
       notes: notes || (diff > 0 ? 'Stock agregado' : 'Stock descontado')
+    };
+
+    this.http.put<any>(`/api/supplies/${id}`, payload).subscribe(updatedSupply => {
+      this.supplies.update(s => s.map(item => item.id === id ? mapSupply(updatedSupply) : item));
+      this.refreshSupplyHistory();
     });
   }
 
-  // --- Sales (Adds debt) ---
-  addSale(saleData: Omit<Sale, 'id' | 'date' | 'total'>) {
-    let total = 0;
-    
-    // Deduct stock and calc total
-    const currentSupplies = this.supplies();
-    const updatedSupplies = [...currentSupplies];
-
-    for (const item of saleData.items) {
-      total += item.quantity * item.unitPrice;
-      const supplyIdx = updatedSupplies.findIndex(s => s.id === item.supplyId);
-      if (supplyIdx !== -1) {
-        const newStock = updatedSupplies[supplyIdx].stock - item.quantity;
-        
-        this.addSupplyHistory({
-          supplyId: updatedSupplies[supplyIdx].id,
-          supplyName: updatedSupplies[supplyIdx].name,
-          type: 'VENTA',
-          quantityChanged: item.quantity,
-          newStockValue: newStock,
-          notes: `Venta a cliente`
-        });
-
-        updatedSupplies[supplyIdx] = { 
-          ...updatedSupplies[supplyIdx], 
-          stock: newStock 
-        };
-      }
-    }
-
-    this.supplies.set(updatedSupplies);
-
-    const newSale: Sale = {
-      ...saleData,
-      id: crypto.randomUUID(),
-      date: new Date().toISOString(),
-      total
-    };
-    this.sales.update(s => [...s, newSale]);
-    return newSale;
+  private refreshSupplyHistory() {
+    this.http.get<any[]>('/api/supply-history').subscribe(data => this.supplyHistory.set(data.map(mapSupplyHistory)));
   }
 
-  // --- Payments (Reduces debt) ---
-  addPayment(payment: Omit<Payment, 'id' | 'date'>) {
-    const newPayment: Payment = {
-      ...payment,
-      id: crypto.randomUUID(),
-      date: new Date().toISOString()
+  // --- Sales ---
+  addSale(saleData: Omit<Sale, 'id' | 'date' | 'total'>) {
+    let total = 0;
+    const itemsPayload = [];
+    
+    for (const item of saleData.items) {
+      total += item.quantity * item.unitPrice;
+      itemsPayload.push({
+        idSuministro: item.supplyId,
+        cantidad: item.quantity,
+        precioUnitario: item.unitPrice
+      });
+    }
+
+    const payload = {
+      idCliente: saleData.clientId,
+      total,
+      montoPagoEsperado: saleData.expectedPaymentAmount,
+      notas: saleData.notes,
+      items: itemsPayload
     };
-    this.payments.update(p => [...p, newPayment]);
-    return newPayment;
+
+    this.http.post<any>('/api/sales', payload).subscribe(newSale => {
+      this.sales.update(s => [mapSale(newSale), ...s]);
+      this.http.get<any[]>('/api/supplies').subscribe(data => this.supplies.set(data.map(mapSupply)));
+      this.refreshSupplyHistory();
+    });
+    return {} as Sale;
+  }
+
+  // --- Payments ---
+  addPayment(payment: Omit<Payment, 'id' | 'date'>) {
+    const payload = {
+      idCliente: payment.clientId,
+      monto: payment.amount,
+      notas: payment.notes
+    };
+    this.http.post<any>('/api/payments', payload).subscribe(newPayment => {
+      this.payments.update(p => [mapPayment(newPayment), ...p]);
+    });
+    return {} as Payment;
   }
 
   // --- Visits ---
   addVisit(visit: Omit<Visit, 'id'>) {
-    const newVisit: Visit = {
-      ...visit,
-      id: crypto.randomUUID()
+    const payload = {
+      idCliente: visit.clientId,
+      estado: visit.status,
+      notas: visit.notes
     };
-    this.visits.update(v => [...v, newVisit]);
-    return newVisit;
+    this.http.post<any>('/api/visits', payload).subscribe(newVisit => {
+      this.visits.update(v => [mapVisit(newVisit), ...v]);
+    });
+    return {} as Visit;
   }
 
   updateVisit(id: string, visit: Partial<Visit>) {
-    this.visits.update(v => v.map(item => item.id === id ? { ...item, ...visit } : item));
+    const payload: any = {};
+    if (visit.status !== undefined) payload.estado = visit.status;
+    if (visit.notes !== undefined) payload.notas = visit.notes;
+
+    this.http.put<any>(`/api/visits/${id}`, payload).subscribe(updatedVisit => {
+      this.visits.update(v => v.map(item => item.id === id ? mapVisit(updatedVisit) : item));
+    });
   }
 
   // --- Computed Views ---

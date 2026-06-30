@@ -3,7 +3,7 @@ import { Injectable, signal } from '@angular/core';
 export interface Profile {
   id: string;
   name: string;
-  permissions: string[]; // clients, delays, routes, supplies, financial, reports, users
+  permissions: string[];
 }
 
 export interface User {
@@ -21,116 +21,204 @@ export class AuthService {
   profiles = signal<Profile[]>([]);
   users = signal<User[]>([]);
   currentUser = signal<User | null>(null);
+  currentProfileSignal = signal<Profile | null>(null);
 
   constructor() {
     this.loadState();
-    if (this.users().length === 0) {
-      this.initDefaultAdmin();
-    }
+    this.fetchProfiles();
+    this.fetchUsers();
   }
 
   get currentProfile(): Profile | null {
-    const user = this.currentUser();
-    if (!user) return null;
-    return this.profiles().find(p => p.id === user.profileId) || null;
+    // Return from signal which has cached version or latest
+    return this.currentProfileSignal();
   }
 
   hasPermission(section: string): boolean {
-    if (!this.currentProfile) return false;
-    // Admins implicitly have access to everything if 'admin' is their profile name, or they have 'users'
-    if (this.currentProfile.permissions.includes('all')) return true;
-    return this.currentProfile.permissions.includes(section);
+    const cp = this.currentProfile;
+    if (!cp) return false;
+    if (cp.permissions.includes('all')) return true;
+    return cp.permissions.includes(section);
   }
 
   private loadState() {
     if (typeof window === 'undefined') return;
-    const data = localStorage.getItem('cobranza_auth');
-    if (data) {
-      const parsed = JSON.parse(data);
-      this.profiles.set(parsed.profiles || []);
-      this.users.set(parsed.users || []);
-      const userBytes = localStorage.getItem('cobranza_current_user');
-      if (userBytes) {
+    const userBytes = localStorage.getItem('cobranza_current_user');
+    const profileBytes = localStorage.getItem('cobranza_current_profile');
+    if (userBytes) {
+      try {
         this.currentUser.set(JSON.parse(userBytes));
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    if (profileBytes) {
+      try {
+        this.currentProfileSignal.set(JSON.parse(profileBytes));
+      } catch (e) {
+        console.error(e);
       }
     }
   }
 
   private saveState() {
     if (typeof window === 'undefined') return;
-    localStorage.setItem('cobranza_auth', JSON.stringify({
-      profiles: this.profiles(),
-      users: this.users()
-    }));
     if (this.currentUser()) {
         localStorage.setItem('cobranza_current_user', JSON.stringify(this.currentUser()));
     } else {
         localStorage.removeItem('cobranza_current_user');
     }
+    if (this.currentProfileSignal()) {
+        localStorage.setItem('cobranza_current_profile', JSON.stringify(this.currentProfileSignal()));
+    } else {
+        localStorage.removeItem('cobranza_current_profile');
+    }
   }
 
-  initDefaultAdmin() {
-    const adminProfile: Profile = {
-      id: crypto.randomUUID(),
-      name: 'Administrador',
-      permissions: ['clients', 'delays', 'routes', 'supplies', 'financial', 'reports', 'users']
-    };
-    const adminUser: User = {
-      id: crypto.randomUUID(),
-      name: 'Admin Principal',
-      username: 'admin',
-      password: '123',
-      profileId: adminProfile.id
-    };
-    this.profiles.set([adminProfile]);
-    this.users.set([adminUser]);
-    this.saveState();
+  async fetchProfiles() {
+    try {
+      const res = await fetch('/api/profiles');
+      if (res.ok) {
+        const data = await res.json();
+        this.profiles.set(data);
+        // Update current profile if we have one
+        const user = this.currentUser();
+        if (user) {
+          const p = data.find((x: Profile) => x.id === user.profileId);
+          if (p) {
+             this.currentProfileSignal.set(p);
+             this.saveState();
+          }
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    }
   }
 
-  login(username: string, password: string):boolean {
-    const user = this.users().find(u => u.username === username && u.password === password);
-    if (user) {
-      this.currentUser.set(user);
-      this.saveState();
-      return true;
+  async fetchUsers() {
+    try {
+      const res = await fetch('/api/users');
+      if (res.ok) {
+        this.users.set(await res.json());
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  async login(username: string, password: string): Promise<boolean> {
+    try {
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        this.currentUser.set(data.user);
+        this.currentProfileSignal.set(data.profile);
+        this.saveState();
+        return true;
+      }
+    } catch (e) {
+      console.error(e);
     }
     return false;
   }
 
   logout() {
     this.currentUser.set(null);
+    this.currentProfileSignal.set(null);
     this.saveState();
   }
 
-  addProfile(profile: Omit<Profile, 'id'>) {
+  async addProfile(profile: Omit<Profile, 'id'>) {
+    // Generate UUID locally or let db do it? DB schema expects a string. Let's send a UUID.
     const newProfile = { ...profile, id: crypto.randomUUID() };
-    this.profiles.update(p => [...p, newProfile]);
-    this.saveState();
+    try {
+      const res = await fetch('/api/profiles', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newProfile)
+      });
+      if (res.ok) {
+        this.fetchProfiles();
+      }
+    } catch (e) {
+      console.error(e);
+    }
   }
 
-  updateProfile(id: string, updates: Partial<Profile>) {
-    this.profiles.update(p => p.map(pr => pr.id === id ? { ...pr, ...updates } : pr));
-    this.saveState();
+  async updateProfile(id: string, updates: Partial<Profile>) {
+    try {
+      const res = await fetch(`/api/profiles/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates)
+      });
+      if (res.ok) {
+        this.fetchProfiles();
+      }
+    } catch (e) {
+      console.error(e);
+    }
   }
 
-  deleteProfile(id: string) {
-    this.profiles.update(p => p.filter(pr => pr.id !== id));
-    this.saveState();
+  async deleteProfile(id: string) {
+    try {
+      const res = await fetch(`/api/profiles/${id}`, {
+        method: 'DELETE'
+      });
+      if (res.ok) {
+        this.fetchProfiles();
+      }
+    } catch (e) {
+      console.error(e);
+    }
   }
 
-  addUser(user: Omit<User, 'id'>) {
+  async addUser(user: Omit<User, 'id'>) {
     const newUser = { ...user, id: crypto.randomUUID() };
-    this.users.update(u => [...u, newUser]);
-    this.saveState();
+    try {
+      const res = await fetch('/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newUser)
+      });
+      if (res.ok) {
+        this.fetchUsers();
+      }
+    } catch (e) {
+      console.error(e);
+    }
   }
 
-  updateUser(id: string, updates: Partial<User>) {
-    this.users.update(u => u.map(user => user.id === id ? { ...user, ...updates } : user));
-    this.saveState();
+  async updateUser(id: string, updates: Partial<User>) {
+    try {
+      const res = await fetch(`/api/users/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates)
+      });
+      if (res.ok) {
+        this.fetchUsers();
+      }
+    } catch (e) {
+      console.error(e);
+    }
   }
 
-  deleteUser(id: string) {
-    this.users.update(u => u.filter(user => user.id !== id));
-    this.saveState();
+  async deleteUser(id: string) {
+    try {
+      const res = await fetch(`/api/users/${id}`, {
+        method: 'DELETE'
+      });
+      if (res.ok) {
+        this.fetchUsers();
+      }
+    } catch (e) {
+      console.error(e);
+    }
   }
 }

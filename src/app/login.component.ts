@@ -67,14 +67,14 @@ export class LoginComponent {
   password = '';
   error = '';
 
-  onSubmit() {
+  async onSubmit() {
     this.error = '';
     if (!this.username || !this.password) {
       this.error = 'Por favor ingresa usuario y contraseña.';
       return;
     }
 
-    const success = this.auth.login(this.username, this.password);
+    const success = await this.auth.login(this.username, this.password);
     if (success) {
       this.router.navigate(['/clients']);
     } else {

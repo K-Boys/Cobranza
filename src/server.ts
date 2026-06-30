@@ -9,7 +9,11 @@ import {join} from 'node:path';
 
 const browserDistFolder = join(import.meta.dirname, '../browser');
 
+import { api } from './api';
+
 const app = express();
+app.use(express.json());
+app.use('/api', api);
 const angularApp = new AngularNodeAppEngine();
 
 /**
