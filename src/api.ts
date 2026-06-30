@@ -119,7 +119,7 @@ api.put('/users/:id', async (req, res) => {
     const { password, ...rest } = req.body;
     const updateData: Record<string, unknown> = { ...rest };
     if (password) {
-      updateData.password = await bcrypt.hash(password, 10);
+      updateData['password'] = await bcrypt.hash(password, 10);
     }
     const [updatedUser] = await db.update(schema.usuarios).set(updateData).where(eq(schema.usuarios.id, req.params.id)).returning();
     res.json({ id: updatedUser.id, username: updatedUser.username, name: updatedUser.name, profileId: updatedUser.profileId });
