@@ -2,5 +2,5 @@
   "name": "Sistema de Cobranza",
   "description": "Plataforma web de cobranza y gestión de clientes con estados de cuenta en tiempo real y exportación a PDF.",
   "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API", "MAJOR_CAPABILITY_CLOUD_SQL_DEVELOPER_EDITION"]
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

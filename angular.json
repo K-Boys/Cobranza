@@ -21,6 +21,7 @@
           "options": {
             "browser": "src/main.ts",
             "tsConfig": "tsconfig.app.json",
+            "polyfills": [],
             "assets": [
               {
                 "glob": "**/*",
@@ -59,17 +60,16 @@
             "development": {
               "optimization": false,
               "extractLicenses": false,
-              "sourceMap": true,
-              "externalDependencies": [
-                "pg",
-                "dotenv"
-              ]
+              "sourceMap": true
             }
           },
           "defaultConfiguration": "production"
         },
         "serve": {
           "builder": "@angular/build:dev-server",
+          "options": {
+            "allowedHosts": [".run.app", "localhost", "127.0.0.1"]
+          },
           "configurations": {
             "production": {
               "buildTarget": "app:build:production"
