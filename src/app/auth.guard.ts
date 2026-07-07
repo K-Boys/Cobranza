@@ -2,12 +2,17 @@ import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from './auth.service';
 
-export const authGuard = () => {
+export const authGuard = async () => {
+  console.log('authGuard running on:', typeof window === 'undefined' ? 'server' : 'client');
   if (typeof window === 'undefined') return true;
   
   const auth = inject(AuthService);
   const router = inject(Router);
   
+  await auth.sessionReady;
+  
+  console.log('authGuard session ready. currentUser:', auth.currentUser());
+
   if (auth.currentUser()) {
     return true;
   }
@@ -15,12 +20,14 @@ export const authGuard = () => {
 };
 
 export const permissionGuard = (permission: string) => {
-  return () => {
+  return async () => {
     if (typeof window === 'undefined') return true;
     
     const auth = inject(AuthService);
     const router = inject(Router);
     
+    await auth.sessionReady;
+
     if (auth.hasPermission(permission)) {
       return true;
     }

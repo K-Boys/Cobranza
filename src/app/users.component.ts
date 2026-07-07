@@ -236,18 +236,17 @@ export class UsersComponent {
     }
   }
 
-  saveProfile() {
+  async saveProfile() {
     if (!this.currentProfile.name) return;
     
-    // Ignore edits to 'Administrador' permissions unless we let them, but let's keep all.
     if (this.editingProfile?.name === 'Administrador') {
          this.currentProfile.permissions = ['clients', 'delays', 'routes', 'supplies', 'financial', 'reports', 'users', 'all']; 
     }
 
     if (this.editingProfile) {
-      this.auth.updateProfile(this.editingProfile.id, this.currentProfile);
+      await this.auth.updateProfile(this.editingProfile.id, this.currentProfile);
     } else {
-      this.auth.addProfile(this.currentProfile);
+      await this.auth.addProfile(this.currentProfile);
     }
     this.closeProfileModal();
   }
@@ -275,7 +274,7 @@ export class UsersComponent {
     return true;
   }
 
-  saveUser() {
+  async saveUser() {
     if (!this.canSaveUser()) return;
     
     if (this.editingUser) {
@@ -283,9 +282,9 @@ export class UsersComponent {
       if (this.currentUser.password) {
         updates.password = this.currentUser.password;
       }
-      this.auth.updateUser(this.editingUser.id, updates);
+      await this.auth.updateUser(this.editingUser.id, updates);
     } else {
-      this.auth.addUser(this.currentUser);
+      await this.auth.addUser(this.currentUser);
     }
     this.closeUserModal();
   }

@@ -1,4 +1,6 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
 
 export interface Profile {
   id: string;
@@ -12,213 +14,114 @@ export interface User {
   username: string;
   password?: string;
   profileId: string;
+  profile?: Profile;
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
+  private http = inject(HttpClient);
+
   profiles = signal<Profile[]>([]);
   users = signal<User[]>([]);
   currentUser = signal<User | null>(null);
-  currentProfileSignal = signal<Profile | null>(null);
+
+  sessionReady: Promise<void>;
 
   constructor() {
-    this.loadState();
-    this.fetchProfiles();
-    this.fetchUsers();
+    this.sessionReady = this.checkSession();
   }
 
   get currentProfile(): Profile | null {
-    // Return from signal which has cached version or latest
-    return this.currentProfileSignal();
+    const user = this.currentUser();
+    if (!user) return null;
+    return user.profile || null;
   }
 
   hasPermission(section: string): boolean {
-    const cp = this.currentProfile;
-    if (!cp) return false;
-    if (cp.permissions.includes('all')) return true;
-    return cp.permissions.includes(section);
+    const profile = this.currentProfile;
+    if (!profile) return false;
+    if (profile.permissions.includes('all')) return true;
+    return profile.permissions.includes(section);
   }
 
-  private loadState() {
+  async checkSession() {
     if (typeof window === 'undefined') return;
-    const userBytes = localStorage.getItem('cobranza_current_user');
-    const profileBytes = localStorage.getItem('cobranza_current_profile');
-    if (userBytes) {
+    const token = localStorage.getItem('cobranza_token');
+    if (token) {
       try {
-        this.currentUser.set(JSON.parse(userBytes));
+        const user = await firstValueFrom(this.http.get<User>('/api/me'));
+        this.currentUser.set(user);
+        this.loadUsersAndProfiles();
       } catch (e) {
-        console.error(e);
+        localStorage.removeItem('cobranza_token');
+        this.currentUser.set(null);
       }
-    }
-    if (profileBytes) {
-      try {
-        this.currentProfileSignal.set(JSON.parse(profileBytes));
-      } catch (e) {
-        console.error(e);
-      }
-    }
-  }
-
-  private saveState() {
-    if (typeof window === 'undefined') return;
-    if (this.currentUser()) {
-        localStorage.setItem('cobranza_current_user', JSON.stringify(this.currentUser()));
-    } else {
-        localStorage.removeItem('cobranza_current_user');
-    }
-    if (this.currentProfileSignal()) {
-        localStorage.setItem('cobranza_current_profile', JSON.stringify(this.currentProfileSignal()));
-    } else {
-        localStorage.removeItem('cobranza_current_profile');
-    }
-  }
-
-  async fetchProfiles() {
-    try {
-      const res = await fetch('/api/profiles');
-      if (res.ok) {
-        const data = await res.json();
-        this.profiles.set(data);
-        // Update current profile if we have one
-        const user = this.currentUser();
-        if (user) {
-          const p = data.find((x: Profile) => x.id === user.profileId);
-          if (p) {
-             this.currentProfileSignal.set(p);
-             this.saveState();
-          }
-        }
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  }
-
-  async fetchUsers() {
-    try {
-      const res = await fetch('/api/users');
-      if (res.ok) {
-        this.users.set(await res.json());
-      }
-    } catch (e) {
-      console.error(e);
     }
   }
 
   async login(username: string, password: string): Promise<boolean> {
     try {
-      const res = await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-      });
-      if (res.ok) {
-        const data = await res.json();
-        this.currentUser.set(data.user);
-        this.currentProfileSignal.set(data.profile);
-        this.saveState();
-        return true;
-      }
+      const res = await firstValueFrom(this.http.post<{token: string, user: User}>('/api/login', { username, password }));
+      localStorage.setItem('cobranza_token', res.token);
+      this.currentUser.set(res.user);
+      this.loadUsersAndProfiles();
+      return true;
     } catch (e) {
-      console.error(e);
+      return false;
     }
-    return false;
   }
 
   logout() {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('cobranza_token');
+    }
     this.currentUser.set(null);
-    this.currentProfileSignal.set(null);
-    this.saveState();
+    this.profiles.set([]);
+    this.users.set([]);
+  }
+
+  async loadUsersAndProfiles() {
+    try {
+      const [profiles, users] = await Promise.all([
+        firstValueFrom(this.http.get<Profile[]>('/api/profiles')),
+        firstValueFrom(this.http.get<User[]>('/api/users'))
+      ]);
+      this.profiles.set(profiles);
+      this.users.set(users);
+    } catch (e) {
+      console.error('Error loading users/profiles', e);
+    }
   }
 
   async addProfile(profile: Omit<Profile, 'id'>) {
-    // Generate UUID locally or let db do it? DB schema expects a string. Let's send a UUID.
-    const newProfile = { ...profile, id: crypto.randomUUID() };
-    try {
-      const res = await fetch('/api/profiles', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newProfile)
-      });
-      if (res.ok) {
-        this.fetchProfiles();
-      }
-    } catch (e) {
-      console.error(e);
-    }
+    await firstValueFrom(this.http.post('/api/profiles', profile));
+    await this.loadUsersAndProfiles();
   }
 
   async updateProfile(id: string, updates: Partial<Profile>) {
-    try {
-      const res = await fetch(`/api/profiles/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updates)
-      });
-      if (res.ok) {
-        this.fetchProfiles();
-      }
-    } catch (e) {
-      console.error(e);
-    }
+    await firstValueFrom(this.http.put(`/api/profiles/${id}`, updates));
+    await this.loadUsersAndProfiles();
   }
 
   async deleteProfile(id: string) {
-    try {
-      const res = await fetch(`/api/profiles/${id}`, {
-        method: 'DELETE'
-      });
-      if (res.ok) {
-        this.fetchProfiles();
-      }
-    } catch (e) {
-      console.error(e);
-    }
+    await firstValueFrom(this.http.delete(`/api/profiles/${id}`));
+    await this.loadUsersAndProfiles();
   }
 
   async addUser(user: Omit<User, 'id'>) {
-    const newUser = { ...user, id: crypto.randomUUID() };
-    try {
-      const res = await fetch('/api/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newUser)
-      });
-      if (res.ok) {
-        this.fetchUsers();
-      }
-    } catch (e) {
-      console.error(e);
-    }
+    await firstValueFrom(this.http.post('/api/users', user));
+    await this.loadUsersAndProfiles();
   }
 
   async updateUser(id: string, updates: Partial<User>) {
-    try {
-      const res = await fetch(`/api/users/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updates)
-      });
-      if (res.ok) {
-        this.fetchUsers();
-      }
-    } catch (e) {
-      console.error(e);
-    }
+    await firstValueFrom(this.http.put(`/api/users/${id}`, updates));
+    await this.loadUsersAndProfiles();
   }
 
   async deleteUser(id: string) {
-    try {
-      const res = await fetch(`/api/users/${id}`, {
-        method: 'DELETE'
-      });
-      if (res.ok) {
-        this.fetchUsers();
-      }
-    } catch (e) {
-      console.error(e);
-    }
+    await firstValueFrom(this.http.delete(`/api/users/${id}`));
+    await this.loadUsersAndProfiles();
   }
 }
