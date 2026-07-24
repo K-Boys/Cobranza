@@ -207,8 +207,10 @@ app.get('/api/clients', async (req, res) => {
         ciudad as city, 
         notas as notes, 
         fecha_creacion as "createdAt", 
-        dias_termino_pago as "paymentTermsDays" 
+        dias_termino_pago as "paymentTermsDays",
+        estatus as status
       FROM clientes
+      WHERE estatus != 'inactivo' OR estatus IS NULL
     `);
     return res.json(result.rows);
   } catch (err: any) { return res.status(500).json({ error: err.message }); }
@@ -238,7 +240,7 @@ app.put('/api/clients/:id', async (req, res) => {
 
 app.delete('/api/clients/:id', async (req, res) => {
   try {
-    await pool.query('DELETE FROM clientes WHERE id=$1', [req.params.id]);
+    await pool.query("UPDATE clientes SET estatus='inactivo' WHERE id=$1", [req.params.id]);
     return res.json({ success: true });
   } catch (err: any) { return res.status(500).json({ error: err.message }); }
 });
@@ -246,7 +248,7 @@ app.delete('/api/clients/:id', async (req, res) => {
 // Supplies
 app.get('/api/supplies', async (req, res) => {
   try {
-    const result = await pool.query('SELECT id, nombre as name, precio::float as price, stock FROM suministros');
+    const result = await pool.query("SELECT id, nombre as name, precio::float as price, stock FROM suministros WHERE estatus != 'inactivo' OR estatus IS NULL");
     return res.json(result.rows);
   } catch (err: any) { return res.status(500).json({ error: err.message }); }
 });
@@ -269,7 +271,7 @@ app.put('/api/supplies/:id', async (req, res) => {
 
 app.delete('/api/supplies/:id', async (req, res) => {
   try {
-    await pool.query('DELETE FROM suministros WHERE id=$1', [req.params.id]);
+    await pool.query("UPDATE suministros SET estatus='inactivo' WHERE id=$1", [req.params.id]);
     return res.json({ success: true });
   } catch (err: any) { return res.status(500).json({ error: err.message }); }
 });
