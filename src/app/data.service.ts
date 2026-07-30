@@ -14,7 +14,7 @@ export interface Client {
   createdAt: string;
   paymentTermsDays?: number;
 }
-export interface Supply { id: string; name: string; price: number; stock: number; }
+export interface Supply { id: string; name: string; price: number; stock: number; image?: string; }
 export interface SupplyHistoryEvent { 
   id: string; 
   supplyId: string; 

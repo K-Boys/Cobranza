@@ -60,6 +60,20 @@ import { DataService, Supply } from './data.service';
                     class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
                 </div>
               </div>
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Imagen (Opcional)</label>
+                <div class="flex items-center space-x-4">
+                  @if (supplyForm.value.image) {
+                    <img [src]="supplyForm.value.image" class="w-16 h-16 object-cover rounded-lg border border-slate-200">
+                    <button type="button" (click)="supplyForm.patchValue({image: ''})" class="text-sm text-rose-600 hover:text-rose-800">Eliminar imagen</button>
+                  } @else {
+                    <label class="cursor-pointer bg-slate-50 border border-slate-300 hover:bg-slate-100 px-4 py-2 rounded-lg text-sm font-medium text-slate-700 transition-colors">
+                      Seleccionar Archivo
+                      <input type="file" accept="image/*" class="hidden" (change)="handleImageUpload($event)">
+                    </label>
+                  }
+                </div>
+              </div>
               <div class="flex items-center justify-end space-x-3 pt-4 border-t border-slate-100 mt-2">
                 <button type="button" (click)="toggleForm()" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-md font-semibold transition-colors">Cancelar</button>
                 <button type="submit" [disabled]="supplyForm.invalid" 
@@ -70,27 +84,32 @@ import { DataService, Supply } from './data.service';
             </form>
           </div>
         </div>
-      }
-
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      }      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         @for (sup of filteredSupplies(); track sup.id) {
           <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-200 flex flex-col relative overflow-hidden group">
-            <div class="absolute top-2 right-2 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
-              <button (click)="editSupply(sup)" class="p-1 text-slate-400 hover:text-indigo-600 rounded" title="Editar">
+            <div class="absolute top-2 right-2 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+              <button (click)="editSupply(sup)" class="p-1 text-slate-400 hover:text-indigo-600 rounded bg-white shadow-sm border border-slate-100" title="Editar">
                 <mat-icon class="text-[18px]">edit</mat-icon>
               </button>
-              <button (click)="deleteSupply(sup.id)" class="p-1 text-slate-400 hover:text-rose-600 rounded" title="Eliminar/Baja">
+              <button (click)="deleteSupply(sup.id)" class="p-1 text-slate-400 hover:text-rose-600 rounded bg-white shadow-sm border border-slate-100" title="Eliminar/Baja">
                 <mat-icon class="text-[18px]">delete</mat-icon>
               </button>
             </div>
-            <div class="flex justify-between items-start mb-4 pr-12">
-              <h3 class="font-bold text-slate-900 text-lg leading-tight w-2/3">{{ sup.name }}</h3>
-              <div class="text-right">
-                <div class="text-xl font-bold text-slate-900">{{ formatCurrency(sup.price) }}</div>
-                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">PRECIO</div>
+            
+            <div class="flex space-x-4 mb-4">
+              @if (sup.image) {
+                <div class="w-16 h-16 shrink-0 rounded-lg overflow-hidden border border-slate-200 cursor-pointer hover:opacity-80 transition-opacity" (click)="previewImage.set(sup.image)">
+                  <img [src]="sup.image" [alt]="sup.name" class="w-full h-full object-cover">
+                </div>
+              }
+              <div class="flex-1 min-w-0 pr-10">
+                <h3 class="font-bold text-slate-900 text-lg leading-tight truncate" [title]="sup.name">{{ sup.name }}</h3>
+                <div class="mt-1">
+                  <div class="text-xl font-bold text-slate-900">{{ formatCurrency(sup.price) }}</div>
+                </div>
               </div>
             </div>
-
+            
             <div class="mt-auto pt-4 flex justify-between items-end border-t border-slate-100">
               <div>
                 <div class="text-[10px] font-bold uppercase text-slate-400 tracking-wider mb-1">STOCK DISPONIBLE</div>
@@ -163,6 +182,18 @@ import { DataService, Supply } from './data.service';
       </div>
     }
     
+    <!-- Image Preview Modal -->
+    @if (previewImage()) {
+      <div class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[60] flex items-center justify-center p-4" (click)="previewImage.set(null)">
+        <div class="relative max-w-4xl max-h-[90vh] flex items-center justify-center animate-in zoom-in-95 duration-200" (click)="$event.stopPropagation()">
+          <button class="absolute -top-12 right-0 text-white hover:text-slate-300 transition-colors" (click)="previewImage.set(null)">
+            <mat-icon class="text-3xl">close</mat-icon>
+          </button>
+          <img [src]="previewImage()" class="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl bg-white">
+        </div>
+      </div>
+    }
+
     <!-- History Modal -->
     @if (showHistory()) {
       <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -241,6 +272,7 @@ export class SuppliesComponent {
   
   showForm = signal(false);
   showHistory = signal(false);
+  previewImage = signal<string | null>(null);
   selectedSupply = signal<Supply | null>(null);
   searchQuery = signal('');
   errorMessage = signal('');
@@ -283,16 +315,30 @@ export class SuppliesComponent {
   supplyForm = this.fb.group({
     name: ['', Validators.required],
     price: [0, [Validators.required, Validators.min(0.01)]],
-    stock: [0, [Validators.required, Validators.min(0)]]
+    stock: [0, [Validators.required, Validators.min(0)]],
+    image: ['']
   });
 
   editingSupplyId = signal<string | null>(null);
+
+  handleImageUpload(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files[0]) {
+      const file = input.files[0];
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const base64 = e.target?.result as string;
+        this.supplyForm.patchValue({ image: base64 });
+      };
+      reader.readAsDataURL(file);
+    }
+  }
 
   toggleForm() {
     this.showForm.update(v => !v);
     this.errorMessage.set('');
     if (!this.showForm()) {
-        this.supplyForm.reset({stock: 0});
+        this.supplyForm.reset({stock: 0, image: ''});
         this.editingSupplyId.set(null);
     }
   }
@@ -302,7 +348,8 @@ export class SuppliesComponent {
     this.supplyForm.patchValue({
       name: supply.name,
       price: supply.price,
-      stock: supply.stock
+      stock: supply.stock,
+      image: supply.image || ''
     });
     this.showForm.set(true);
   }

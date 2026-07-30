@@ -31,7 +31,7 @@ app.get('/api/db-test', async (req, res) => {
   }
 });
 
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
 
 const JWT_SECRET = process.env['JWT_SECRET'] || 'cobranza-secret-key-123';
 
@@ -135,7 +135,14 @@ app.post('/api/profiles', async (req, res) => {
 app.put('/api/profiles/:id', async (req, res) => {
   try {
     const { name, permissions } = req.body;
-    await pool.query('UPDATE perfiles SET name=$1, permissions=$2 WHERE id=$3', [name, permissions, req.params.id]);
+    const existingResult = await pool.query('SELECT * FROM perfiles WHERE id=$1', [req.params.id]);
+    if (existingResult.rows.length === 0) return res.status(404).json({ error: 'Not found' });
+    const existing = existingResult.rows[0];
+
+    const newName = name !== undefined ? name : existing.name;
+    const newPermissions = permissions !== undefined ? permissions : existing.permissions;
+
+    await pool.query('UPDATE perfiles SET name=$1, permissions=$2 WHERE id=$3', [newName, newPermissions, req.params.id]);
     return res.json({ success: true });
   } catch (err: any) { return res.status(500).json({ error: err.message }); }
 });
@@ -170,16 +177,24 @@ app.post('/api/users', async (req, res) => {
 app.put('/api/users/:id', async (req, res) => {
   try {
     const { username, password, name, profileId } = req.body;
+    const existingResult = await pool.query('SELECT * FROM usuarios WHERE id=$1', [req.params.id]);
+    if (existingResult.rows.length === 0) return res.status(404).json({ error: 'Not found' });
+    const existing = existingResult.rows[0];
+
+    const newUsername = username !== undefined ? username : existing.username;
+    const newName = name !== undefined ? name : existing.name;
+    const newProfileId = profileId !== undefined ? profileId : existing.profile_id;
+
     if (password) {
       const hashedPassword = await bcrypt.hash(password, 10);
       await pool.query(
         'UPDATE usuarios SET username=$1, password=$2, name=$3, profile_id=$4 WHERE id=$5', 
-        [username, hashedPassword, name, profileId, req.params.id]
+        [newUsername, hashedPassword, newName, newProfileId, req.params.id]
       );
     } else {
       await pool.query(
         'UPDATE usuarios SET username=$1, name=$2, profile_id=$3 WHERE id=$4', 
-        [username, name, profileId, req.params.id]
+        [newUsername, newName, newProfileId, req.params.id]
       );
     }
     return res.json({ success: true });
@@ -230,9 +245,22 @@ app.post('/api/clients', async (req, res) => {
 app.put('/api/clients/:id', async (req, res) => {
   try {
     const { name, phone, email, street, neighborhood, city, notes, paymentTermsDays } = req.body;
+    const existingResult = await pool.query('SELECT * FROM clientes WHERE id=$1', [req.params.id]);
+    if (existingResult.rows.length === 0) return res.status(404).json({ error: 'Not found' });
+    const existing = existingResult.rows[0];
+
+    const newName = name !== undefined ? name : existing.nombre;
+    const newPhone = phone !== undefined ? phone : existing.telefono;
+    const newEmail = email !== undefined ? email : existing.correo;
+    const newStreet = street !== undefined ? street : existing.calle;
+    const newNeighborhood = neighborhood !== undefined ? neighborhood : existing.colonia;
+    const newCity = city !== undefined ? city : existing.ciudad;
+    const newNotes = notes !== undefined ? notes : existing.notas;
+    const newPaymentTermsDays = paymentTermsDays !== undefined ? paymentTermsDays : existing.dias_termino_pago;
+
     await pool.query(
       'UPDATE clientes SET nombre=$1, telefono=$2, correo=$3, calle=$4, colonia=$5, ciudad=$6, notas=$7, dias_termino_pago=$8 WHERE id=$9',
-      [name, phone, email, street, neighborhood, city, notes, paymentTermsDays, req.params.id]
+      [newName, newPhone, newEmail, newStreet, newNeighborhood, newCity, newNotes, newPaymentTermsDays, req.params.id]
     );
     return res.json({ success: true });
   } catch (err: any) { return res.status(500).json({ error: err.message }); }
@@ -248,23 +276,32 @@ app.delete('/api/clients/:id', async (req, res) => {
 // Supplies
 app.get('/api/supplies', async (req, res) => {
   try {
-    const result = await pool.query("SELECT id, nombre as name, precio::float as price, stock FROM suministros WHERE estatus != 'inactivo' OR estatus IS NULL");
+    const result = await pool.query("SELECT id, nombre as name, precio::float as price, stock, imagen as image FROM suministros WHERE estatus != 'inactivo' OR estatus IS NULL");
     return res.json(result.rows);
   } catch (err: any) { return res.status(500).json({ error: err.message }); }
 });
 
 app.post('/api/supplies', async (req, res) => {
   try {
-    const { id, name, price, stock } = req.body;
-    await pool.query('INSERT INTO suministros (id, nombre, precio, stock) VALUES ($1, $2, $3, $4)', [id, name, price, stock]);
+    const { id, name, price, stock, image } = req.body;
+    await pool.query('INSERT INTO suministros (id, nombre, precio, stock, imagen) VALUES ($1, $2, $3, $4, $5)', [id, name, price, stock, image]);
     return res.json({ success: true });
   } catch (err: any) { return res.status(500).json({ error: err.message }); }
 });
 
 app.put('/api/supplies/:id', async (req, res) => {
   try {
-    const { name, price, stock } = req.body;
-    await pool.query('UPDATE suministros SET nombre=$1, precio=$2, stock=$3 WHERE id=$4', [name, price, stock, req.params.id]);
+    const { name, price, stock, image } = req.body;
+    const existingResult = await pool.query('SELECT * FROM suministros WHERE id=$1', [req.params.id]);
+    if (existingResult.rows.length === 0) return res.status(404).json({ error: 'Not found' });
+    const existing = existingResult.rows[0];
+
+    const newName = name !== undefined ? name : existing.nombre;
+    const newPrice = price !== undefined ? price : existing.precio;
+    const newStock = stock !== undefined ? stock : existing.stock;
+    const newImage = image !== undefined ? image : existing.imagen;
+
+    await pool.query('UPDATE suministros SET nombre=$1, precio=$2, stock=$3, imagen=$4 WHERE id=$5', [newName, newPrice, newStock, newImage, req.params.id]);
     return res.json({ success: true });
   } catch (err: any) { return res.status(500).json({ error: err.message }); }
 });
@@ -440,7 +477,14 @@ app.post('/api/visits', async (req, res) => {
 app.put('/api/visits/:id', async (req, res) => {
   try {
     const { status, notes } = req.body;
-    await pool.query('UPDATE visitas SET estado=$1, notas=$2 WHERE id=$3', [status, notes, req.params.id]);
+    const existingResult = await pool.query('SELECT * FROM visitas WHERE id=$1', [req.params.id]);
+    if (existingResult.rows.length === 0) return res.status(404).json({ error: 'Not found' });
+    const existing = existingResult.rows[0];
+
+    const newStatus = status !== undefined ? status : existing.estado;
+    const newNotes = notes !== undefined ? notes : existing.notas;
+
+    await pool.query('UPDATE visitas SET estado=$1, notas=$2 WHERE id=$3', [newStatus, newNotes, req.params.id]);
     return res.json({ success: true });
   } catch (err: any) { return res.status(500).json({ error: err.message }); }
 });
