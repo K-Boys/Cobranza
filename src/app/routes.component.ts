@@ -28,8 +28,8 @@ interface RouteClient {
 
       <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
         <div class="overflow-x-auto">
-          <table class="w-full text-left text-sm whitespace-nowrap min-w-[800px]">
-            <thead class="bg-slate-50 border-b border-slate-200">
+          <table class="w-full text-left text-sm whitespace-nowrap block md:table">
+            <thead class="hidden md:table-header-group bg-slate-50 border-b border-slate-200">
               <tr>
                 <th class="px-4 md:px-6 py-4 font-semibold text-slate-700">Cliente / Dirección</th>
                 <th class="px-4 md:px-6 py-4 font-semibold text-slate-700">Deuda</th>
@@ -38,10 +38,10 @@ interface RouteClient {
                 <th class="px-4 md:px-6 py-4 font-semibold text-slate-700 text-right">Acciones</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-slate-100">
+            <tbody class="flex flex-col md:table-row-group gap-3 md:gap-0 divide-y-0 md:divide-y divide-transparent md:divide-slate-100 bg-slate-50 md:bg-transparent p-3 md:p-0">
               @for (route of routeClients(); track route.client.id) {
-                <tr class="hover:bg-slate-50 transition-colors" [class.bg-slate-50]="route.visitStatus !== 'pending'">
-                  <td class="px-4 md:px-6 py-4">
+                <tr class="hover:bg-slate-50 md:hover:bg-slate-50 transition-colors flex flex-col md:table-row py-4 md:py-0 border border-slate-200 md:border-none md:border-b md:border-slate-100 relative bg-white md:bg-transparent rounded-xl md:rounded-none shadow-sm md:shadow-none" [class.bg-slate-50]="route.visitStatus !== 'pending'">
+                  <td class="px-4 md:px-6 py-2 md:py-4 block md:table-cell">
                     <div class="font-bold text-slate-900">{{ route.client.name }}</div>
                     <div class="text-xs text-slate-500 mt-1 flex items-center">
                       <mat-icon class="text-[14px] mr-1 shrink-0">location_on</mat-icon>
@@ -51,10 +51,10 @@ interface RouteClient {
                       <div class="text-[10px] text-slate-400 mt-0.5 ml-4 text-wrap max-w-xs whitespace-normal">{{ route.client.notes }}</div>
                     }
                   </td>
-                  <td class="px-4 md:px-6 py-4 font-medium" [ngClass]="route.totalDebt > 0 ? 'text-rose-600' : 'text-slate-700'">
+                  <td class="px-4 md:px-6 py-2 md:py-4 font-medium block md:table-cell" [ngClass]="route.totalDebt > 0 ? 'text-rose-600' : 'text-slate-700'"><div class="md:hidden text-xs text-slate-400 font-semibold mb-1 uppercase tracking-wider">Deuda</div>
                     {{ formatCurrency(route.totalDebt) }}
                   </td>
-                  <td class="px-4 md:px-6 py-4">
+                  <td class="px-4 md:px-6 py-2 md:py-4 block md:table-cell">
                     @if (route.isDelayed) {
                       <span class="px-2 py-1 bg-rose-100 text-rose-700 font-bold rounded-md text-xs">
                         Retraso ({{ route.daysDelayed }} días)
@@ -65,7 +65,7 @@ interface RouteClient {
                       </span>
                     }
                   </td>
-                  <td class="px-4 md:px-6 py-4">
+                  <td class="px-4 md:px-6 py-2 md:py-4 block md:table-cell">
                     @if (route.visitStatus === 'pending') {
                       <span class="text-slate-500 font-medium flex items-center">
                         <mat-icon class="text-sm mr-1">schedule</mat-icon> Por visitar
@@ -80,7 +80,7 @@ interface RouteClient {
                       </span>
                     }
                   </td>
-                  <td class="px-4 md:px-6 py-4 text-right">
+                  <td class="px-4 md:px-6 py-2 md:py-4 text-left md:text-right block md:table-cell">
                     <div class="flex items-center justify-end space-x-2">
                       <button (click)="markVisit(route.client.id, route.visitId, 'visited')" 
                               [class.bg-emerald-100]="route.visitStatus === 'visited'"
@@ -108,8 +108,8 @@ interface RouteClient {
                   </td>
                 </tr>
               } @empty {
-                <tr>
-                  <td colspan="5" class="px-4 md:px-6 py-12 text-center text-slate-500">
+                <tr class="block md:table-row">
+                  <td colspan="5" class="px-4 md:px-6 py-12 text-center text-slate-500 block md:table-cell">
                     <mat-icon class="text-4xl text-slate-300 mb-2">map</mat-icon>
                     <h3 class="text-lg font-bold text-slate-700 mb-1">Sin rutas pendientes</h3>
                     <p>No hay clientes con adeudos o no se ha generado la lista.</p>

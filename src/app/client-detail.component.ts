@@ -130,8 +130,8 @@ import * as FileSaver from 'file-saver';
 
               <!-- Ledger Table -->
               <div class="overflow-x-auto flex-1">
-                <table class="w-full text-left min-w-[600px]">
-                  <thead class="bg-slate-50 text-slate-500 text-[10px] font-bold uppercase border-b border-slate-100 print:border-slate-300">
+                <table class="w-full text-left block md:table">
+                  <thead class="hidden md:table-header-group bg-slate-50 text-slate-500 text-[10px] font-bold uppercase border-b border-slate-100 print:border-slate-300">
                     <tr>
                       <th class="px-4 py-3 whitespace-nowrap">Fecha</th>
                       <th class="px-4 py-3">Descripción</th>
@@ -140,11 +140,11 @@ import * as FileSaver from 'file-saver';
                       <th class="px-4 py-3 text-right print:hidden whitespace-nowrap">Balance</th>
                     </tr>
                   </thead>
-                  <tbody class="divide-y divide-slate-100 text-sm print:divide-slate-200">
+                  <tbody class="flex flex-col md:table-row-group gap-3 md:gap-0 divide-y-0 md:divide-y divide-transparent md:divide-slate-100 text-sm bg-slate-50 md:bg-transparent p-3 md:p-0 print:divide-slate-200 print:table-row-group">
                     @for (record of sortedLedger(); track record.id) {
-                      <tr class="hover:bg-slate-50 transition-colors">
-                        <td class="px-4 py-3 text-slate-500 text-xs whitespace-nowrap">{{ formatDate(record.date) }}</td>
-                        <td class="px-4 py-3 min-w-[200px]">
+                      <tr class="hover:bg-slate-50 md:hover:bg-slate-50 transition-colors flex flex-col md:table-row py-4 md:py-0 border border-slate-200 md:border-none md:border-b md:border-slate-100 relative bg-white md:bg-transparent rounded-xl md:rounded-none shadow-sm md:shadow-none print:table-row print:border-b">
+                        <td class="px-4 py-2 md:py-3 text-slate-500 text-xs whitespace-nowrap block md:table-cell print:table-cell">{{ formatDate(record.date) }}</td>
+                        <td class="px-4 py-2 md:py-3 min-w-[200px] block md:table-cell print:table-cell">
                           @if (record.type === 'SALE') {
                             <div class="font-medium text-slate-800">Venta Suministros</div>
                             <div class="text-xs text-slate-500 mt-1 italic">
@@ -164,19 +164,19 @@ import * as FileSaver from 'file-saver';
                             </div>
                           }
                         </td>
-                        <td class="px-4 py-3 text-right font-semibold text-rose-600 whitespace-nowrap">
+                        <td class="px-4 py-2 md:py-3 text-left md:text-right font-semibold text-rose-600 whitespace-nowrap block md:table-cell print:table-cell"><div class="md:hidden text-xs text-slate-400 font-semibold mb-1 uppercase tracking-wider">Cargo</div>
                           {{ record.type === 'SALE' ? formatCurrency(record.amount) : '-' }}
                         </td>
-                        <td class="px-4 py-3 text-right font-semibold text-emerald-600 whitespace-nowrap">
+                        <td class="px-4 py-2 md:py-3 text-left md:text-right font-semibold text-emerald-600 whitespace-nowrap block md:table-cell print:table-cell"><div class="md:hidden text-xs text-slate-400 font-semibold mb-1 uppercase tracking-wider">Abono</div>
                           {{ record.type === 'PAYMENT' ? formatCurrency(record.amount) : '-' }}
                         </td>
-                        <td class="px-4 py-3 text-right text-slate-700 font-semibold print:hidden whitespace-nowrap">
+                        <td class="px-4 py-2 md:py-3 text-left md:text-right text-slate-700 font-semibold print:hidden whitespace-nowrap block md:table-cell print:table-cell"><div class="md:hidden text-xs text-slate-400 font-semibold mb-1 uppercase tracking-wider">Balance</div>
                           {{ formatCurrency(record.runningBalance || 0) }}
                         </td>
                       </tr>
                     } @empty {
-                      <tr>
-                        <td colspan="5" class="px-4 py-12 text-center text-slate-500 text-sm">
+                      <tr class="block md:table-row">
+                        <td colspan="5" class="px-4 py-12 text-center text-slate-500 text-sm block md:table-cell print:table-cell">
                           No hay transacciones registradas.
                         </td>
                       </tr>
@@ -185,12 +185,12 @@ import * as FileSaver from 'file-saver';
                   <!-- Footer totals print-only -->
                   <tfoot class="hidden print:table-footer-group border-t border-slate-300 bg-slate-50">
                     <tr>
-                      <td colspan="2" class="px-4 py-3 text-right text-sm font-bold text-slate-800 uppercase tracking-widest">Totales</td>
-                      <td class="px-4 py-3 text-right text-sm font-bold">{{ formatCurrency(summary().totalBilled) }}</td>
-                      <td class="px-4 py-3 text-right text-sm font-bold text-emerald-700">{{ formatCurrency(summary().totalPaid) }}</td>
+                      <td colspan="2" class="px-4 py-2 md:py-3 text-left md:text-right text-sm font-bold text-slate-800 uppercase tracking-widest block md:table-cell print:table-cell">Totales</td>
+                      <td class="px-4 py-2 md:py-3 text-left md:text-right text-sm font-bold block md:table-cell print:table-cell">{{ formatCurrency(summary().totalBilled) }}</td>
+                      <td class="px-4 py-2 md:py-3 text-left md:text-right text-sm font-bold text-emerald-700 block md:table-cell print:table-cell">{{ formatCurrency(summary().totalPaid) }}</td>
                     </tr>
                     <tr>
-                      <td colspan="5" class="px-4 py-6 text-center">
+                      <td colspan="5" class="px-4 py-6 text-center block md:table-cell print:table-cell">
                         <div class="inline-block border-2 border-slate-900 px-6 py-3 rounded-lg font-black text-xl bg-white shadow-sm">
                           SALDO A PAGAR: {{ formatCurrency(summary().currentDebt) }}
                         </div>

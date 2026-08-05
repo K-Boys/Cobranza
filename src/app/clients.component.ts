@@ -18,7 +18,8 @@ import { DataService, Client } from './data.service';
         <button (click)="toggleForm()" class="w-full sm:w-auto justify-center bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-md font-medium transition-colors flex items-center shadow-sm whitespace-nowrap">
           <mat-icon class="mr-2 text-sm">person_add</mat-icon>
           Nuevo Cliente
-        </button>
+</button>
+        
       </div>
 
       @if (showForm()) {
@@ -74,11 +75,13 @@ import { DataService, Client } from './data.service';
                 <p class="text-xs text-slate-500 mt-1">Días límite para que el cliente realice el pago de sus cargos.</p>
               </div>
               <div class="md:col-span-2 flex justify-end space-x-3 pt-4 border-t border-slate-100 mt-2">
-                <button type="button" (click)="toggleForm()" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg font-medium transition-colors">Cancelar</button>
+                <button type="button" (click)="toggleForm()" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg font-medium transition-colors">Cancelar
+</button>
                 <button type="submit" [disabled]="clientForm.invalid" 
                   class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                   {{ editingClientId() ? 'Guardar Cambios' : 'Guardar Cliente' }}
-                </button>
+</button>
+                
               </div>
             </form>
           </div>
@@ -96,8 +99,8 @@ import { DataService, Client } from './data.service';
             </div>
         </div>
         <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse min-w-[600px]">
-            <thead>
+          <table class="w-full text-left border-collapse block md:table">
+            <thead class="hidden md:table-header-group">
               <tr class="bg-slate-50 text-[10px] uppercase font-bold text-slate-500 border-b border-slate-100">
                 <th class="px-4 md:px-6 py-3 whitespace-nowrap">Cliente</th>
                 <th class="px-4 md:px-6 py-3 whitespace-nowrap">Contacto</th>
@@ -105,27 +108,27 @@ import { DataService, Client } from './data.service';
                 <th class="px-4 md:px-6 py-3 text-right whitespace-nowrap">Acciones</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-slate-100 text-sm">
+            <tbody class="flex flex-col md:table-row-group gap-3 md:gap-0 divide-y-0 md:divide-y divide-transparent md:divide-slate-100 text-sm bg-slate-50 md:bg-transparent p-3 md:p-0">
               @for (client of filteredClients(); track client.id) {
-                <tr class="hover:bg-slate-50 transition-colors group cursor-pointer" (click)="viewClient(client.id)">
-                  <td class="px-4 md:px-6 py-4">
+                <tr class="hover:bg-slate-50 transition-colors group cursor-pointer flex flex-col md:table-row py-4 md:py-0 border-b border-slate-100 md:border-none relative" (click)="viewClient(client.id)">
+                  <td class="px-4 md:px-6 py-2 md:py-4 block md:table-cell">
                     <div class="flex items-center">
                       <div class="w-8 h-8 rounded-lg bg-slate-700 text-indigo-300 flex items-center justify-center font-bold mr-3 text-xs shrink-0">
                         {{ client.name.charAt(0).toUpperCase() }}
                       </div>
-                      <div class="min-w-0">
+                      <div class="min-w-0 pr-16 md:pr-0">
                         <div class="font-medium text-slate-900 group-hover:text-indigo-600 transition-colors truncate">{{ client.name }}</div>
                         <div class="text-xs text-slate-500 truncate">Registrado el {{ formatDate(client.createdAt) }}</div>
                       </div>
                     </div>
                   </td>
-                  <td class="px-4 md:px-6 py-4 min-w-[200px]">
+                  <td class="px-4 md:px-6 py-2 md:py-4 min-w-[200px] block md:table-cell">
                     <div class="text-slate-700 flex items-start"><mat-icon class="text-slate-400 text-[16px] w-[16px] h-[16px] mr-1.5 mt-0.5 shrink-0" aria-hidden="true">location_on</mat-icon> <span class="leading-tight">{{ getAddressString(client) }}</span></div>
                     @if (client.phone) {
                       <div class="text-xs text-slate-500 mt-2 flex items-center"><mat-icon class="text-slate-400 text-[14px] w-[14px] h-[14px] mr-1.5 shrink-0" aria-hidden="true">call</mat-icon> {{ client.phone }}</div>
                     }
                   </td>
-                  <td class="px-4 md:px-6 py-4 whitespace-nowrap">
+                  <td class="px-4 md:px-6 py-2 md:py-4 mt-2 md:mt-0 whitespace-nowrap block md:table-cell"><div class="md:hidden text-xs text-slate-400 font-semibold mb-1 uppercase tracking-wider">Deuda y Abono</div>
                     <div class="flex flex-col gap-1 items-start">
                       <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold uppercase" 
                             [class.bg-rose-50]="getDebt(client.id)() > 0" 
@@ -142,23 +145,24 @@ import { DataService, Client } from './data.service';
                       }
                     </div>
                   </td>
-                  <td class="px-4 md:px-6 py-4 text-right whitespace-nowrap">
+                  <td class="absolute right-2 top-4 md:static px-4 md:px-6 py-2 md:py-4 text-right whitespace-nowrap flex md:table-cell justify-end items-start md:items-center">
                     <div class="flex justify-end space-x-1">
                       <button class="text-slate-400 hover:text-indigo-600 p-2 rounded-full hover:bg-indigo-50 transition-colors opacity-100 md:opacity-0 md:group-hover:opacity-100" (click)="editClient(client, $event)" title="Editar Cliente">
                         <mat-icon class="text-[18px]">edit</mat-icon>
-                      </button>
+</button>
+                      
                       <button class="text-slate-400 hover:text-rose-600 p-2 rounded-full hover:bg-rose-50 transition-colors opacity-100 md:opacity-0 md:group-hover:opacity-100" (click)="deleteClient(client.id, $event)" title="Eliminar/Baja">
                         <mat-icon class="text-[18px]">delete</mat-icon>
-                      </button>
-                      <button class="text-slate-400 hover:text-indigo-600 p-2 rounded-full hover:bg-indigo-50 transition-colors" (click)="viewClient(client.id); $event.stopPropagation()">
-                        <mat-icon>arrow_forward_ios</mat-icon>
-                      </button>
+</button>
+                      
+                        
+                      
                     </div>
                   </td>
                 </tr>
               } @empty {
-                <tr>
-                  <td colspan="4" class="px-4 md:px-6 py-12 text-center text-slate-500">
+                <tr class="block md:table-row">
+                  <td colspan="4" class="px-4 md:px-6 py-12 text-center text-slate-500 block md:table-cell">
                     <mat-icon class="text-4xl text-slate-300 mb-2">person_off</mat-icon>
                     <p>No hay clientes registrados aún.</p>
                   </td>

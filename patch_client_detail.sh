@@ -1,0 +1,10 @@
+sed -i 's/<tbody class="divide-y divide-slate-100 md:divide-none text-sm block md:table-row-group print:divide-slate-200">/<tbody class="flex flex-col md:table-row-group gap-3 md:gap-0 divide-y-0 md:divide-y divide-transparent md:divide-slate-100 text-sm bg-slate-50 md:bg-transparent p-3 md:p-0 print:divide-slate-200 print:table-row-group">/g' src/app/client-detail.component.ts
+
+sed -i 's/<tr class="hover:bg-slate-50 transition-colors block md:table-row py-3 md:py-0 border-b border-slate-100 md:border-none">/<tr class="hover:bg-slate-50 md:hover:bg-slate-50 transition-colors flex flex-col md:table-row py-4 md:py-0 border border-slate-200 md:border-none md:border-b md:border-slate-100 relative bg-white md:bg-transparent rounded-xl md:rounded-none shadow-sm md:shadow-none print:table-row print:border-b">/g' src/app/client-detail.component.ts
+
+sed -i 's/<td class="px-4 py-2 md:py-3 text-left md:text-right font-semibold text-rose-600 whitespace-nowrap block md:table-cell">/<td class="px-4 py-2 md:py-3 text-left md:text-right font-semibold text-rose-600 whitespace-nowrap block md:table-cell print:table-cell"><div class="md:hidden text-xs text-slate-400 font-semibold mb-1 uppercase tracking-wider">Cargo<\/div>/g' src/app/client-detail.component.ts
+
+sed -i 's/<td class="px-4 py-2 md:py-3 text-left md:text-right font-semibold text-emerald-600 whitespace-nowrap block md:table-cell">/<td class="px-4 py-2 md:py-3 text-left md:text-right font-semibold text-emerald-600 whitespace-nowrap block md:table-cell print:table-cell"><div class="md:hidden text-xs text-slate-400 font-semibold mb-1 uppercase tracking-wider">Abono<\/div>/g' src/app/client-detail.component.ts
+
+sed -i 's/<td class="px-4 py-2 md:py-3 text-left md:text-right text-slate-700 font-semibold print:hidden whitespace-nowrap block md:table-cell">/<td class="px-4 py-2 md:py-3 text-left md:text-right text-slate-700 font-semibold print:hidden whitespace-nowrap block md:table-cell"><div class="md:hidden text-xs text-slate-400 font-semibold mb-1 uppercase tracking-wider">Balance<\/div>/g' src/app/client-detail.component.ts
+

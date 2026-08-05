@@ -61,10 +61,10 @@ import { DataService, Supply } from './data.service';
                 </div>
               </div>
               <div>
-                <label class="block text-sm font-medium text-slate-700 mb-1">Imagen (Opcional)</label>
+                <span class="block text-sm font-medium text-slate-700 mb-1">Imagen (Opcional)</span>
                 <div class="flex items-center space-x-4">
                   @if (supplyForm.value.image) {
-                    <img [src]="supplyForm.value.image" class="w-16 h-16 object-cover rounded-lg border border-slate-200">
+                    <img [src]="supplyForm.value.image" class="w-16 h-16 object-cover rounded-lg border border-slate-200" alt="Imagen">
                     <button type="button" (click)="supplyForm.patchValue({image: ''})" class="text-sm text-rose-600 hover:text-rose-800">Eliminar imagen</button>
                   } @else {
                     <label class="cursor-pointer bg-slate-50 border border-slate-300 hover:bg-slate-100 px-4 py-2 rounded-lg text-sm font-medium text-slate-700 transition-colors">
@@ -98,9 +98,9 @@ import { DataService, Supply } from './data.service';
             
             <div class="flex space-x-4 mb-4">
               @if (sup.image) {
-                <div class="w-16 h-16 shrink-0 rounded-lg overflow-hidden border border-slate-200 cursor-pointer hover:opacity-80 transition-opacity" (click)="previewImage.set(sup.image)">
+                <button type="button" class="w-16 h-16 shrink-0 rounded-lg overflow-hidden border border-slate-200 cursor-pointer hover:opacity-80 transition-opacity" (click)="previewImage.set(sup.image)">
                   <img [src]="sup.image" [alt]="sup.name" class="w-full h-full object-cover">
-                </div>
+                </button>
               }
               <div class="flex-1 min-w-0 pr-10">
                 <h3 class="font-bold text-slate-900 text-lg leading-tight truncate" [title]="sup.name">{{ sup.name }}</h3>
@@ -184,12 +184,12 @@ import { DataService, Supply } from './data.service';
     
     <!-- Image Preview Modal -->
     @if (previewImage()) {
-      <div class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[60] flex items-center justify-center p-4" (click)="previewImage.set(null)">
-        <div class="relative max-w-4xl max-h-[90vh] flex items-center justify-center animate-in zoom-in-95 duration-200" (click)="$event.stopPropagation()">
+      <div class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[60] flex items-center justify-center p-4" (click)="previewImage.set(null)" (keyup.enter)="previewImage.set(null)" tabindex="0">
+        <div class="relative max-w-4xl max-h-[90vh] flex items-center justify-center animate-in zoom-in-95 duration-200" (click)="$event.stopPropagation()" (keyup.enter)="$event.stopPropagation()" tabindex="0">
           <button class="absolute -top-12 right-0 text-white hover:text-slate-300 transition-colors" (click)="previewImage.set(null)">
             <mat-icon class="text-3xl">close</mat-icon>
           </button>
-          <img [src]="previewImage()" class="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl bg-white">
+          <img [src]="previewImage()" class="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl bg-white" alt="Preview">
         </div>
       </div>
     }
@@ -204,8 +204,8 @@ import { DataService, Supply } from './data.service';
           </div>
           <div class="p-0 max-h-[60vh] overflow-y-auto">
             <div class="overflow-x-auto">
-              <table class="w-full text-left text-sm whitespace-nowrap min-w-[600px]">
-                <thead class="bg-slate-50 sticky top-0 z-10 border-b border-slate-200 shadow-sm">
+              <table class="w-full text-left text-sm whitespace-nowrap block md:table">
+                <thead class="hidden md:table-header-group bg-slate-50 sticky top-0 z-10 border-b border-slate-200 shadow-sm">
                   <tr>
                     <th class="px-4 md:px-6 py-3 font-semibold text-slate-700">Fecha</th>
                     <th class="px-4 md:px-6 py-3 font-semibold text-slate-700">Insumo</th>
@@ -215,12 +215,12 @@ import { DataService, Supply } from './data.service';
                     <th class="px-4 md:px-6 py-3 font-semibold text-slate-700">Comentarios</th>
                   </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100">
+                <tbody class="flex flex-col md:table-row-group gap-3 md:gap-0 divide-y-0 md:divide-y divide-transparent md:divide-slate-100 bg-slate-50 md:bg-transparent p-3 md:p-0">
                   @for (event of sortedHistory(); track event.id) {
-                    <tr class="hover:bg-slate-50 transition-colors">
-                      <td class="px-4 md:px-6 py-3 text-slate-500">{{ formatDate(event.date) }}</td>
-                      <td class="px-4 md:px-6 py-3 font-medium text-slate-900">{{ event.supplyName }}</td>
-                      <td class="px-4 md:px-6 py-3">
+                    <tr class="hover:bg-slate-50 transition-colors flex flex-col md:table-row py-4 md:py-0 border border-slate-200 md:border-none md:border-b md:border-slate-100 relative bg-white md:bg-transparent rounded-xl md:rounded-none shadow-sm md:shadow-none">
+                      <td class="px-4 md:px-6 py-1.5 md:py-3 text-slate-500 block md:table-cell">{{ formatDate(event.date) }}</td>
+                      <td class="px-4 md:px-6 py-1.5 md:py-3 font-medium text-slate-900 block md:table-cell">{{ event.supplyName }}</td>
+                      <td class="px-4 md:px-6 py-1.5 md:py-3 block md:table-cell">
                         <span class="px-2 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md"
                           [ngClass]="{
                             'bg-emerald-100 text-emerald-800': event.type === 'ALTA' || event.type === 'AJUSTE_POSITIVO',
@@ -230,7 +230,7 @@ import { DataService, Supply } from './data.service';
                           {{ event.type }}
                         </span>
                       </td>
-                      <td class="px-4 md:px-6 py-3 text-right">
+                      <td class="px-4 md:px-6 py-1.5 md:py-3 text-left md:text-right block md:table-cell"><div class="md:hidden text-xs text-slate-400 font-semibold mb-1 uppercase tracking-wider">Variación</div>
                         @if (event.quantityChanged !== undefined) {
                           <span class="font-medium" [ngClass]="{'text-rose-600': event.type === 'VENTA' || event.type === 'AJUSTE_NEGATIVO', 'text-emerald-600': event.type === 'AJUSTE_POSITIVO'}">
                             {{ event.type === 'VENTA' || event.type === 'AJUSTE_NEGATIVO' ? '-' : '+' }}{{ event.quantityChanged }}
@@ -239,16 +239,16 @@ import { DataService, Supply } from './data.service';
                           <span class="text-slate-400">-</span>
                         }
                       </td>
-                      <td class="px-4 md:px-6 py-3 text-right font-medium text-slate-900">
+                      <td class="px-4 md:px-6 py-1.5 md:py-3 text-left md:text-right font-medium text-slate-900 block md:table-cell"><div class="md:hidden text-xs text-slate-400 font-semibold mb-1 uppercase tracking-wider">Stock Final</div>
                         {{ event.newStockValue !== undefined ? event.newStockValue : '-' }}
                       </td>
-                      <td class="px-4 md:px-6 py-3 text-slate-600 text-xs truncate max-w-xs" [title]="event.notes || ''">
+                      <td class="px-4 md:px-6 py-1.5 md:py-3 text-slate-600 text-xs truncate max-w-xs block md:table-cell" [title]="event.notes || ''">
                         {{ event.notes || '--' }}
                       </td>
                     </tr>
                   } @empty {
-                    <tr>
-                      <td colspan="6" class="px-4 md:px-6 py-12 text-center text-slate-500">
+                    <tr class="block md:table-row">
+                      <td colspan="6" class="px-4 md:px-6 py-12 text-center text-slate-500 block md:table-cell">
                         <mat-icon class="text-4xl text-slate-300 mb-2">history</mat-icon>
                         <p>No hay movimientos registrados.</p>
                       </td>

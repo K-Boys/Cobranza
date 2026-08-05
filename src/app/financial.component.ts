@@ -85,8 +85,8 @@ interface Transaction {
             </div>
         </div>
         <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse min-w-[800px]">
-            <thead>
+          <table class="w-full text-left border-collapse block md:table">
+            <thead class="hidden md:table-header-group">
               <tr class="bg-slate-50 text-xs text-slate-500 uppercase tracking-wider border-b border-slate-200">
                 <th class="px-4 md:px-6 py-3 font-semibold w-48 whitespace-nowrap">Fecha y Hora</th>
                 <th class="px-4 md:px-6 py-3 font-semibold whitespace-nowrap">Tipo</th>
@@ -95,13 +95,13 @@ interface Transaction {
                 <th class="px-4 md:px-6 py-3 font-semibold text-right whitespace-nowrap">Monto</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-slate-100 text-sm">
+            <tbody class="flex flex-col md:table-row-group gap-3 md:gap-0 divide-y-0 md:divide-y divide-transparent md:divide-slate-100 text-sm bg-slate-50 md:bg-transparent p-3 md:p-0">
               @for (tx of filteredTransactions(); track tx.id) {
-                <tr class="hover:bg-slate-50 transition-colors">
-                  <td class="px-4 md:px-6 py-4 whitespace-nowrap text-slate-500 text-xs font-medium">
+                <tr class="hover:bg-slate-50 md:hover:bg-slate-50 transition-colors flex flex-col md:table-row py-4 md:py-0 border border-slate-200 md:border-none md:border-b md:border-slate-100 relative bg-white md:bg-transparent rounded-xl md:rounded-none shadow-sm md:shadow-none">
+                  <td class="px-4 md:px-6 py-2 md:py-4 text-slate-500 text-xs font-medium block md:table-cell">
                     {{ formatDate(tx.date) }}
                   </td>
-                  <td class="px-4 md:px-6 py-4 whitespace-nowrap">
+                  <td class="px-4 md:px-6 py-2 md:py-4 whitespace-nowrap block md:table-cell">
                     @if (tx.type === 'PAYMENT') {
                       <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-800">
                         Abono
@@ -112,13 +112,13 @@ interface Transaction {
                       </span>
                     }
                   </td>
-                  <td class="px-4 md:px-6 py-4">
+                  <td class="px-4 md:px-6 py-2 md:py-4 block md:table-cell">
                     <div class="font-bold text-slate-900 truncate max-w-[200px]">{{ getClientName(tx.clientId) }}</div>
                   </td>
-                  <td class="px-4 md:px-6 py-4 text-slate-500 text-xs italic">
+                  <td class="px-4 md:px-6 py-2 md:py-4 text-slate-500 text-xs italic block md:table-cell">
                     <div class="truncate max-w-[300px]">{{ tx.notes || '----' }}</div>
                   </td>
-                  <td class="px-4 md:px-6 py-4 text-right whitespace-nowrap">
+                  <td class="px-4 md:px-6 py-2 md:py-4 text-left md:text-right whitespace-nowrap block md:table-cell">
                     <span class="font-bold px-2.5 py-1 rounded-md" 
                           [class.text-emerald-600]="tx.type === 'PAYMENT'" [class.bg-emerald-50]="tx.type === 'PAYMENT'"
                           [class.text-rose-600]="tx.type === 'SALE'" [class.bg-rose-50]="tx.type === 'SALE'">
@@ -127,8 +127,8 @@ interface Transaction {
                   </td>
                 </tr>
               } @empty {
-                <tr>
-                  <td colspan="5" class="px-4 md:px-6 py-16 text-center text-slate-500 bg-slate-50/50">
+                <tr class="block md:table-row">
+                  <td colspan="5" class="px-4 md:px-6 py-16 text-center text-slate-500 bg-slate-50/50 block md:table-cell">
                     <div class="flex flex-col items-center justify-center">
                       <div class="p-4 bg-slate-100 rounded-full mb-3">
                         <mat-icon class="text-3xl text-slate-400" aria-hidden="true">receipt_long</mat-icon>

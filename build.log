@@ -1,0 +1,8 @@
+
+> ai-studio-angular-app@0.0.0 build
+> ng build
+
+❯ Building...
+✖ Building... [FAILED: The service was stopped: write EPIPE]
+An unhandled exception occurred: The service was stopped: write EPIPE
+See "/tmp/ng-rWtpKe/angular-errors.log" for further details.

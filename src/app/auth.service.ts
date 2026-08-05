@@ -54,7 +54,7 @@ export class AuthService {
         const user = await firstValueFrom(this.http.get<User>('/api/me'));
         this.currentUser.set(user);
         this.loadUsersAndProfiles();
-      } catch (e) {
+      } catch {
         localStorage.removeItem('cobranza_token');
         this.currentUser.set(null);
       }
@@ -68,7 +68,7 @@ export class AuthService {
       this.currentUser.set(res.user);
       this.loadUsersAndProfiles();
       return true;
-    } catch (e) {
+    } catch {
       return false;
     }
   }

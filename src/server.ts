@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   AngularNodeAppEngine,
   createNodeRequestHandler,
@@ -325,7 +326,7 @@ app.get('/api/supply-history', async (req, res) => {
         tipo as type, 
         cantidad_cambio as "quantityChanged", 
         nuevo_valor_stock as "newStockValue", 
-        notas 
+        notas as notes 
       FROM historial_suministros 
       ORDER BY fecha DESC
     `);
@@ -354,7 +355,7 @@ app.get('/api/sales', async (req, res) => {
         fecha as date, 
         total::float, 
         monto_pago_esperado::float as "expectedPaymentAmount", 
-        notas 
+        notas as notes 
       FROM ventas 
       ORDER BY fecha DESC
     `);
@@ -432,7 +433,7 @@ app.delete('/api/sales/:id', async (req, res) => {
 // Payments
 app.get('/api/payments', async (req, res) => {
   try {
-    const result = await pool.query('SELECT id, id_cliente as "clientId", fecha as date, monto::float as amount, notas FROM pagos ORDER BY fecha DESC');
+    const result = await pool.query('SELECT id, id_cliente as "clientId", fecha as date, monto::float as amount, notas as notes FROM pagos ORDER BY fecha DESC');
     return res.json(result.rows);
   } catch (err: any) { return res.status(500).json({ error: err.message }); }
 });
@@ -458,7 +459,7 @@ app.delete('/api/payments/:id', async (req, res) => {
 // Visits
 app.get('/api/visits', async (req, res) => {
   try {
-    const result = await pool.query('SELECT id, id_cliente as "clientId", fecha as date, estado as status, notas FROM visitas ORDER BY fecha DESC');
+    const result = await pool.query('SELECT id, id_cliente as "clientId", fecha as date, estado as status, notas as notes FROM visitas ORDER BY fecha DESC');
     return res.json(result.rows);
   } catch (err: any) { return res.status(500).json({ error: err.message }); }
 });

@@ -26,8 +26,8 @@ interface DelayedClient {
 
       <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
         <div class="overflow-x-auto">
-          <table class="w-full text-left text-sm whitespace-nowrap min-w-[800px]">
-            <thead class="bg-slate-50 border-b border-slate-200">
+          <table class="w-full text-left text-sm whitespace-nowrap block md:table">
+            <thead class="hidden md:table-header-group bg-slate-50 border-b border-slate-200">
               <tr>
                 <th class="px-4 md:px-6 py-4 font-semibold text-slate-700">Cliente</th>
                 <th class="px-4 md:px-6 py-4 font-semibold text-slate-700">Deuda Total</th>
@@ -37,36 +37,36 @@ interface DelayedClient {
                 <th class="px-4 md:px-6 py-4 font-semibold text-slate-700 text-right">Acciones</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-slate-100">
+            <tbody class="flex flex-col md:table-row-group gap-3 md:gap-0 divide-y-0 md:divide-y divide-transparent md:divide-slate-100 bg-slate-50 md:bg-transparent p-3 md:p-0">
               @for (delay of delayedClients(); track delay.client.id) {
-                <tr class="hover:bg-slate-50 transition-colors">
-                  <td class="px-4 md:px-6 py-4">
+                <tr class="hover:bg-slate-50 transition-colors flex flex-col md:table-row py-4 md:py-0 border border-slate-200 md:border-none md:border-b md:border-slate-100 relative bg-white md:bg-transparent rounded-xl md:rounded-none shadow-sm md:shadow-none">
+                  <td class="px-4 md:px-6 py-2 md:py-4 block md:table-cell">
                     <div class="font-bold text-slate-900">{{ delay.client.name }}</div>
                     <div class="text-xs text-slate-500 flex items-center mt-1"><mat-icon class="text-[12px] mr-1">phone</mat-icon> {{ delay.client.phone || 'Sin teléfono' }}</div>
                   </td>
-                  <td class="px-4 md:px-6 py-4 font-medium text-rose-600">
+                  <td class="px-4 md:px-6 py-2 md:py-4 font-medium text-rose-600 block md:table-cell"><div class="md:hidden text-xs text-slate-400 font-semibold mb-1 uppercase tracking-wider">Deuda Total</div>
                     {{ formatCurrency(delay.totalDebt) }}
                   </td>
-                  <td class="px-4 md:px-6 py-4 text-slate-600">
+                  <td class="px-4 md:px-6 py-2 md:py-4 text-slate-600 block md:table-cell"><div class="md:hidden text-xs text-slate-400 font-semibold mb-1 uppercase tracking-wider">Días de Crédito</div>
                     {{ delay.client.paymentTermsDays ?? 15 }} días
                   </td>
-                  <td class="px-4 md:px-6 py-4 text-slate-600">
+                  <td class="px-4 md:px-6 py-2 md:py-4 text-slate-600 block md:table-cell"><div class="md:hidden text-xs text-slate-400 font-semibold mb-1 uppercase tracking-wider">Cargo más Antiguo Vencido</div>
                     {{ formatDate(delay.oldestUnpaidDate) }}
                   </td>
-                  <td class="px-4 md:px-6 py-4">
+                  <td class="px-4 md:px-6 py-2 md:py-4 block md:table-cell">
                     <span class="px-3 py-1 bg-rose-100 text-rose-700 font-bold rounded-full text-xs animate-pulse">
                       {{ delay.daysDelayed }} días de retraso
                     </span>
                   </td>
-                  <td class="px-4 md:px-6 py-4 text-right">
+                  <td class="px-4 md:px-6 py-2 md:py-4 text-left md:text-right block md:table-cell">
                     <a [routerLink]="['/clients', delay.client.id]" class="text-indigo-600 hover:text-indigo-900 font-medium text-sm flex items-center justify-end">
                       Ver Estado de Cuenta <mat-icon class="ml-1 text-[16px]">chevron_right</mat-icon>
                     </a>
                   </td>
                 </tr>
               } @empty {
-                <tr>
-                  <td colspan="6" class="px-4 md:px-6 py-12 text-center text-slate-500">
+                <tr class="block md:table-row">
+                  <td colspan="6" class="px-4 md:px-6 py-12 text-center text-slate-500 block md:table-cell">
                     <div class="flex justify-center mb-4">
                       <div class="bg-emerald-100 p-4 rounded-full">
                         <mat-icon class="text-4xl text-emerald-600">check_circle</mat-icon>
